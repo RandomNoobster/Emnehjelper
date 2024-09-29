@@ -1,0 +1,42 @@
+.popup {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: white;
+  padding: 15px;
+  border: 2px solid #003d99;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  font-family: Arial, sans-serif;
+  border-radius: 10px;
+  z-index: 999999;
+  cursor: move;
+  user-select: none;
+  width: fit-content;
+
+  p {
+    margin-bottom: 0px;
+    color: #333;
+    white-space: pre-line;
+    width: fit-content;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background-color: #333;
+    p {
+      color: white;
+    }
+  }
+}
+
+a {
+  display: block;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+input {
+  width: 100%;
+}
