@@ -24,11 +24,9 @@
     "action": {
         "default_title": "Hei! Klar for å utforske NTNU-emner? 🎓✨",
         "default_popup": "about.html",
-        "default_icon": "/media/ntnu.png"
+        "default_icon": "/media/e-h1024.png"
     },
     "icons": {
-        "16": "/media/ntnu.ico",
-        "48": "/media/ntnu.ico",
-        "128": "/media/ntnu.ico"
+        "128": "/media/e-h128.ico"
     }
 }
