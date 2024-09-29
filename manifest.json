@@ -1,0 +1,37 @@
+{
+    "manifest_version": 3,
+    "name": "Emnehjelper",
+    "version": "1.0",
+    "description": "Viser statistikk om karakterer, arbeidsmengde og beståttprosent på emnesiden til NTNU-emner.",
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.ntnu.no/studier/emner/*",
+                "https://www.ntnu.edu/studies/courses/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "css": [
+                "/styles/content.css"
+            ]
+        }
+    ],
+    "action": {
+        "default_title": "Hei! Klar for å utforske NTNU-emner? 🎓✨",
+        "default_popup": "about.html",
+        "default_icon": "/media/ntnu.png"
+    },
+    "icons": {
+        "16": "/media/ntnu.ico",
+        "48": "/media/ntnu.ico",
+        "128": "/media/ntnu.ico"
+    }
+}
