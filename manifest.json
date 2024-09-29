@@ -4,12 +4,8 @@
     "version": "1.0",
     "description": "Viser statistikk om karakterer, arbeidsmengde og beståttprosent på emnesiden til NTNU-emner.",
     "permissions": [
-        "activeTab",
         "scripting"
     ],
-    "background": {
-        "service_worker": "background.js"
-    },
     "content_scripts": [
         {
             "matches": [
@@ -21,7 +17,8 @@
             ],
             "css": [
                 "/styles/content.css"
-            ]
+            ],
+            "run_at": "document_end"
         }
     ],
     "action": {
