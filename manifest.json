@@ -3,9 +3,6 @@
     "name": "Emnehjelper",
     "version": "1.0",
     "description": "Viser statistikk om karakterer, arbeidsmengde og beståttprosent på emnesiden til NTNU-emner.",
-    "permissions": [
-        "scripting"
-    ],
     "content_scripts": [
         {
             "matches": [
