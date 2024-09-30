@@ -13,6 +13,13 @@
   user-select: none;
   width: fit-content;
 
+  .disclaimer {
+    font-style: italic;
+    font-weight: normal;
+    font-size: 0.8em;
+    margin-top: 10px;
+  }
+
   p {
     margin: 20px 0px 0px 0px;
     color: #333;

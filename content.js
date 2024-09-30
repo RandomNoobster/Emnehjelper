@@ -26,9 +26,6 @@ function makePopUp(data) {
   const popup = document.createElement("div");
   popup.className = "popup";
 
-  // Create a text element with the message
-  const message = document.createElement("div");
-
   // Create links
   const emnrLink = document.createElement("a");
   emnrLink.href = `https://emnr.no/course/${data.course_code}`;
@@ -63,8 +60,8 @@ function makePopUp(data) {
   // Append rows to the table
   rows.forEach((row) => table.appendChild(row));
 
-  // Append the table to the message
-  message.appendChild(table);
+  // Append the table to the popup
+  popup.appendChild(table);
 
   // Create a slider for Arbeidsmengde
   const workloadSlider = document.createElement("input");
@@ -88,9 +85,9 @@ function makePopUp(data) {
           : "Lav") + ` (${data.average_workload.toFixed(2)})`
   }</span>`;
 
-  // Append the workload slider and label to the message
-  message.appendChild(workloadLabel);
-  message.appendChild(workloadSlider);
+  // Append the workload slider and label to the popup
+  popup.appendChild(workloadLabel);
+  popup.appendChild(workloadSlider);
 
   // Create a scale under the workload slider
   const workloadScale = document.createElement("div");
@@ -105,7 +102,7 @@ function makePopUp(data) {
   });
 
   // Append the workload scale under the slider
-  message.appendChild(workloadScale);
+  popup.appendChild(workloadScale);
 
   // Create a slider for Gjennomsnittskarakter with visual scale
   const gradeSlider = document.createElement("input");
@@ -124,9 +121,9 @@ function makePopUp(data) {
     data.average_grade === 0 ? "-.--" : data.average_grade.toFixed(2)
   })</span>`;
 
-  // Append the grade slider and label to the message
-  message.appendChild(gradeLabel);
-  message.appendChild(gradeSlider);
+  // Append the grade slider and label to the popup
+  popup.appendChild(gradeLabel);
+  popup.appendChild(gradeSlider);
 
   // Create a scale under the slider
   const gradeScale = document.createElement("div");
@@ -141,10 +138,12 @@ function makePopUp(data) {
   });
 
   // Append the grade scale under the slider
-  message.appendChild(gradeScale);
+  popup.appendChild(gradeScale);
 
-  // Append the message to the popup
-  popup.appendChild(message);
+  const disclaimer = document.createElement("p");
+  disclaimer.className = "disclaimer";
+  disclaimer.textContent = "Statistikken kommer fra emnr🚀✨";
+  popup.appendChild(disclaimer);
 
   let isDragging = false;
   let initialX, initialY, offsetX, offsetY;
