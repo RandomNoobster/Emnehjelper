@@ -27,7 +27,7 @@ function makePopUp(data) {
   popup.className = "popup";
 
   // Create a text element with the message
-  const message = document.createElement("p");
+  const message = document.createElement("div");
 
   // Create links
   const emnrLink = document.createElement("a");
@@ -45,22 +45,30 @@ function makePopUp(data) {
   karakternetLink.textContent = `Karakterer.net: ${data.course_code}`;
   popup.appendChild(karakternetLink);
 
-  message.textContent += `
-    Statistikk fra emnr.no:
-    Beståttprosent: ${data.pass_rate.toFixed(2)}%
-    Karakter/arbeid: ${
+  // Create table layout
+  const table = document.createElement("table");
+
+  // Add rows to the table
+  const rows = [
+    createTableRow("Beståttprosent:", `${data.pass_rate.toFixed(2)}%`),
+    createTableRow(
+      "Karakter/arbeid:",
       data.review_count === 0
         ? "-.--"
         : (data.average_grade / data.average_workload).toFixed(2)
-    }
-    Antall reviews: ${data.review_count}
-    `;
+    ),
+    createTableRow("Antall reviews:", `${data.review_count}`),
+  ];
 
-  // Append the elements to the popup
-  popup.appendChild(message);
+  // Append rows to the table
+  rows.forEach((row) => table.appendChild(row));
+
+  // Append the table to the message
+  message.appendChild(table);
 
   // Create a slider for Arbeidsmengde
   const workloadSlider = document.createElement("input");
+  workloadSlider.className = "workload-slider";
   workloadSlider.type = "range";
   workloadSlider.min = "0";
   workloadSlider.max = "2";
@@ -70,15 +78,36 @@ function makePopUp(data) {
 
   // Create a label for the workload slider
   const workloadLabel = document.createElement("p");
-  workloadLabel.textContent = `Arbeidsmengde: ${
-    data.review_count === 0 ? "-.--" : data.average_workload.toFixed(2)
-  }`;
+  workloadLabel.innerHTML = `Arbeidsmengde: <span>${
+    data.review_count === 0
+      ? "-.-- (-)"
+      : (data.average_workload > 1.5
+          ? "Høy"
+          : data.average_workload > 0.5
+          ? "Middels"
+          : "Lav") + ` (${data.average_workload.toFixed(2)})`
+  }</span>`;
 
   // Append the workload slider and label to the message
   message.appendChild(workloadLabel);
   message.appendChild(workloadSlider);
 
-  // Create a slider for Gjennomsnittskarakter
+  // Create a scale under the workload slider
+  const workloadScale = document.createElement("div");
+  workloadScale.className = "scale";
+
+  // Labels for 0 to 2 scale
+  const workloadLabels = ["Lav 0", "Middels 1", "Høy 2"];
+  workloadLabels.forEach((label) => {
+    const scaleLabel = document.createElement("span");
+    scaleLabel.textContent = label;
+    workloadScale.appendChild(scaleLabel);
+  });
+
+  // Append the workload scale under the slider
+  message.appendChild(workloadScale);
+
+  // Create a slider for Gjennomsnittskarakter with visual scale
   const gradeSlider = document.createElement("input");
   gradeSlider.type = "range";
   gradeSlider.min = "0";
@@ -89,13 +118,33 @@ function makePopUp(data) {
 
   // Create a label for the grade slider
   const gradeLabel = document.createElement("p");
-  gradeLabel.textContent = `Gjennomsnittskarakter: ${
+  gradeLabel.innerHTML = `Gjennomsnittskarakter: <span>${
+    data.average_grade_letter ?? "-"
+  } (${
     data.average_grade === 0 ? "-.--" : data.average_grade.toFixed(2)
-  } (${data.average_grade_letter ?? "-"})`;
+  })</span>`;
 
   // Append the grade slider and label to the message
   message.appendChild(gradeLabel);
   message.appendChild(gradeSlider);
+
+  // Create a scale under the slider
+  const gradeScale = document.createElement("div");
+  gradeScale.className = "scale";
+
+  // Labels for F to A scale
+  const labels = ["F 0", "E 1 ", "D 2", "C 3", "B 4", "A 5"];
+  labels.forEach((label, index) => {
+    const scaleLabel = document.createElement("span");
+    scaleLabel.textContent = label;
+    gradeScale.appendChild(scaleLabel);
+  });
+
+  // Append the grade scale under the slider
+  message.appendChild(gradeScale);
+
+  // Append the message to the popup
+  popup.appendChild(message);
 
   let isDragging = false;
   let initialX, initialY, offsetX, offsetY;
@@ -132,4 +181,19 @@ function makePopUp(data) {
 
   // Append the popup to the body of the page
   document.body.appendChild(popup);
+}
+
+// Utility to create table rows
+function createTableRow(label, value) {
+  const row = document.createElement("tr");
+  const labelCell = document.createElement("td");
+  const valueCell = document.createElement("td");
+
+  labelCell.textContent = label;
+  valueCell.textContent = value;
+
+  row.appendChild(labelCell);
+  row.appendChild(valueCell);
+
+  return row;
 }
