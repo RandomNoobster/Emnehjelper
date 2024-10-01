@@ -106,6 +106,7 @@ function makePopUp(data) {
 
   // Create a slider for Gjennomsnittskarakter with visual scale
   const gradeSlider = document.createElement("input");
+  gradeSlider.className = "grade-slider";
   gradeSlider.type = "range";
   gradeSlider.min = "0";
   gradeSlider.max = "5";

@@ -56,12 +56,25 @@
 
   input {
     width: 100%;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 5px;  
+    outline: none;
+    opacity: 0.7;
+  }
+
+  .workload-slider {
+    background-image: linear-gradient(to left, #af4c4c, #4CAF50);
+  }
+
+  .grade-slider {
+    background-image: linear-gradient(to right, #af4c4c, #4CAF50);
   }
 
   .scale {
     display: flex;
     justify-content: space-between;
-    margin-top: -8px;
+    margin-top: 0px;
 
     span {
       font-size: 0.8em;
