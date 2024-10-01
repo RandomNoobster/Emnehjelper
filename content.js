@@ -77,7 +77,7 @@ function makePopUp(data) {
   const workloadLabel = document.createElement("p");
   workloadLabel.innerHTML = `Arbeidsmengde: <span>${
     data.review_count === 0
-      ? "-.-- (-)"
+      ? "- (-.--)"
       : (data.average_workload > 1.5
           ? "Høy"
           : data.average_workload > 0.5
