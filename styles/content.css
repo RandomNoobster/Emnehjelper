@@ -11,7 +11,7 @@
   z-index: 999999;
   cursor: move;
   user-select: none;
-  width: fit-content;
+  width: min-content;
 
   .disclaimer {
     font-style: italic;
@@ -27,7 +27,11 @@
     width: fit-content;
   }
 
-  span {
+  .scale-label {
+    white-space: nowrap;
+  }
+
+  .scale-value {
     font-weight: bold;
   }
 
@@ -46,7 +50,7 @@
   }
 
   a {
-    display: block;
+    display: inline-block;
     -webkit-user-drag: none;
     -webkit-user-select: none;
     -moz-user-select: none;

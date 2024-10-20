@@ -7,19 +7,80 @@
   // If a match is found, extract the emnekode
   if (match && match[1]) {
     const emnekode = match[1];
+    console.debug("Emnekode fra URL:", emnekode);
 
-    // Hent data fra API
-    console.debug(emnekode);
-    const emnrResponse = await fetch(`https://api.emnr.no/course/${emnekode}/`);
-    const emnrData = await emnrResponse.json();
-    console.debug(emnrData);
+    // Send a message to the background script to get the data
+    const response = await chrome.runtime.sendMessage({
+      contentScriptQuery: "get-karakter-data",
+      emnekode: emnekode,
+    });
+    const emnrData = response.emnrData;
+    const karakterwebData = response.karakterwebData;
+    console.debug("Data from background script:", emnrData, karakterwebData);
+
+    // Combine the data from both sources
+    const mergedData = mergeData(emnrData, karakterwebData);
 
     // Call the function to create and display the popup
-    makePopUp(emnrData);
+    makePopUp(mergedData);
   } else {
     console.error("Emnekode not found in the URL.");
   }
 })();
+
+function mergeData(emnrData, karakterwebData) {
+  let karakterWebReviewCount = 0;
+  let karakterWebAverageDifficulty;
+  let karakterWebAverageWorkload;
+
+  karakterwebData.forEach((question) => {
+    // Find the highest review count and use it
+    karakterWebReviewCount = Math.max(
+      karakterWebReviewCount,
+      question.answersTotal
+    );
+
+    // Difficulty question has id 1
+    if (question.questionId === 1) {
+      let weigthedSum = 0;
+      question.answers.forEach((answer) => {
+        const value = answer.answerId / 2; // Divide by 2 to rescale from 0-4 to 0-2
+        weigthedSum += value * answer.count;
+      });
+      karakterWebAverageDifficulty = weigthedSum / question.answersTotal;
+    }
+
+    // Workload question has id 2
+    else if (question.questionId === 2) {
+      let weigthedSum = 0;
+      question.answers.forEach((answer) => {
+        const value = answer.answerId / 2; // Divide by 2 to rescale from 0-4 to 0-2
+        weigthedSum += value * answer.count;
+      });
+      karakterWebAverageWorkload = weigthedSum / question.answersTotal;
+    }
+  });
+
+  const totalReviewCount = karakterWebReviewCount + emnrData.review_count;
+  const averageWorkload =
+    (karakterWebAverageWorkload * karakterWebReviewCount +
+      emnrData.average_workload * emnrData.review_count) /
+    totalReviewCount;
+  const averageDifficulty =
+    (karakterWebAverageDifficulty * karakterWebReviewCount +
+      emnrData.average_difficulty * emnrData.review_count) /
+    totalReviewCount;
+
+  return {
+    course_code: emnrData.course_code,
+    pass_rate: emnrData.pass_rate,
+    average_grade: emnrData.average_grade,
+    average_grade_letter: emnrData.average_grade_letter,
+    average_workload: averageWorkload,
+    average_difficulty: averageDifficulty,
+    review_count: totalReviewCount,
+  };
+}
 
 function makePopUp(data) {
   // Create a div element for the popup
@@ -75,15 +136,30 @@ function makePopUp(data) {
 
   // Create a label for the workload slider
   const workloadLabel = document.createElement("p");
-  workloadLabel.innerHTML = `Arbeidsmengde: <span>${
-    data.review_count === 0
-      ? "- (-.--)"
-      : (data.average_workload > 1.5
-          ? "Høy"
-          : data.average_workload > 0.5
-          ? "Middels"
-          : "Lav") + ` (${data.average_workload.toFixed(2)})`
-  }</span>`;
+  const workloadText = document.createElement("span");
+  const workloadValue = document.createElement("span");
+
+  workloadLabel.className = "scale-label";
+  workloadText.textContent = "Arbeidsmengde: ";
+
+  // Calculate the workload description based on the average workload
+  let workloadDescription = "- (-.--)";
+  if (data.review_count !== 0) {
+    workloadDescription =
+      (data.average_workload > 1.5
+        ? "Høy"
+        : data.average_workload > 0.5
+        ? "Middels"
+        : "Lav") + ` (${data.average_workload.toFixed(2)})`;
+  }
+
+  // Set the workload description as text content
+  workloadValue.textContent = workloadDescription;
+  workloadValue.className = "scale-value";
+
+  // Append the text and workload value to the label
+  workloadLabel.appendChild(workloadText);
+  workloadLabel.appendChild(workloadValue);
 
   // Append the workload slider and label to the popup
   popup.appendChild(workloadLabel);
@@ -116,11 +192,24 @@ function makePopUp(data) {
 
   // Create a label for the grade slider
   const gradeLabel = document.createElement("p");
-  gradeLabel.innerHTML = `Gjennomsnittskarakter: <span>${
-    data.average_grade_letter ?? "-"
-  } (${
-    data.average_grade === 0 ? "-.--" : data.average_grade.toFixed(2)
-  })</span>`;
+  const gradeText = document.createElement("span");
+  const gradeValue = document.createElement("span");
+
+  gradeLabel.className = "scale-label";
+  gradeText.textContent = "Gjennomsnittskarakter: ";
+
+  // Calculate the grade description based on the average grade
+  const gradeLetter = data.average_grade_letter ?? "-";
+  const gradeDescription =
+    data.average_grade === 0 ? "-.--" : data.average_grade.toFixed(2);
+
+  // Set the grade description as text content
+  gradeValue.textContent = `${gradeLetter} (${gradeDescription})`;
+  gradeValue.className = "scale-value";
+
+  // Append the text and grade value to the label
+  gradeLabel.appendChild(gradeText);
+  gradeLabel.appendChild(gradeValue);
 
   // Append the grade slider and label to the popup
   popup.appendChild(gradeLabel);
@@ -143,7 +232,8 @@ function makePopUp(data) {
 
   const disclaimer = document.createElement("p");
   disclaimer.className = "disclaimer";
-  disclaimer.textContent = "Statistikken kommer fra emnr🚀✨";
+  disclaimer.textContent =
+    "Statistikken er sammenslått fra emnr og karakterweb🚀✨";
   popup.appendChild(disclaimer);
 
   let isDragging = false;

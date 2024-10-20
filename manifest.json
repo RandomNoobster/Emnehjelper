@@ -3,6 +3,13 @@
     "name": "Emnehjelper",
     "version": "1.0.1",
     "description": "Viser statistikk om karakterer, arbeidsmengde og beståttprosent på emnesiden til NTNU-emner.",
+    "background": {
+        "service_worker": "service-worker.js"
+    },
+    "host_permissions": [
+        "https://www.karakterweb.no/ntnu/*",
+        "https://api.emnr.no/course/*"
+    ],
     "content_scripts": [
         {
             "matches": [
