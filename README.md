@@ -1,5 +1,5 @@
 # Emnehjelper
-Emnehjelper er en nettleser-utvidelse som har som formål å gjøre det enklere å få innsikt i NTNU-emner. Når man skal velge emner er det nyttig å se statistikk om karakterer og arbeidsmengde, men det er tungvindt å manuelt søke opp mange fag i tjenester som *karakterweb*, *karakterer.no* eller *emnr*. Denne utvidelsen gir deg lenker til emnet på disse sidene, i tillegg til å vise fram statistikk fra *emnr*. 
+Emnehjelper er en nettleser-utvidelse som har som formål å gjøre det enklere å få innsikt i NTNU-emner. Når man skal velge emner er det nyttig å se statistikk om karakterer og arbeidsmengde, men det er tungvindt å manuelt søke opp mange fag i tjenester som *karakterweb*, *karakterer.net* eller *emnr*. Denne utvidelsen gir deg lenker til emnet på disse sidene, i tillegg til å vise fram statistikk fra *emnr*. 
 
 ## Hvordan installere?
 Du kan installere Emnehjelper fra Chrome Web Store [her](https://chromewebstore.google.com/detail/emnehjelper/ocfgbjjagbojipkdhbloaegpigmkgiaf).
