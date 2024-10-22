@@ -1,0 +1,110 @@
+/* Base style for all tags */
+.tag {
+  display: inline;
+  white-space: nowrap;
+  padding: 0px 5px;
+  margin: 5px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  text-decoration: none !important;
+}
+
+/* Red tag */
+.red {
+  background-color: #dc3545; /* Red */
+  color: #ffffff; /* White text */
+}
+
+/* Orange tag (between red and green, closer to red) */
+.orange {
+  background-color: #ff9933; /* Orange */
+  color: #000000; /* White text */
+}
+
+.yellow {
+  background-color: #ffee07; /* Yellow */
+  color: #000000; /* Black text */
+}
+
+/* Lime tag (between red and green, closer to green) */
+.lime {
+  background-color: #a3dc39; /* Lime */
+  color: #000000; /* Black text */
+}
+
+/* Green tag */
+.green {
+  background-color: #28a745; /* Green */
+  color: #ffffff; /* White text */
+}
+
+.gray {
+  background-color: #6c757d; /* Gray */
+  color: #ffffff; /* White text */
+}
+
+table.courselist tr td:first-child {
+  min-width: max-content;
+}
+
+table.courselist tr td:nth-child(2) {
+  max-width: 200px;
+  min-width: 200px;
+
+  .expanded {
+    overflow: visible;
+    white-space: normal;
+    height: auto;
+  }
+}
+
+table.courselist {
+  table-layout: auto !important;
+}
+
+.courseCollapse {
+  overflow-y: clip !important;
+}
+
+.toggler a {
+  border-radius: 4px;
+  width: fit-content;
+  padding: 0px 10px;
+  margin: 1px auto;
+  border: 1px solid #dfdfdf;
+}
+
+/* Loading animation with bouncing dots */
+.loading {
+  display: inline-block;
+  margin-left: 20px;
+}
+
+.dot {
+  height: 5px;
+  width: 5px;
+  margin: 0 3px;
+  background-color: #333;
+  border-radius: 50%;
+  display: inline-block;
+  animation: bounce 0.6s infinite alternate;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-10px);
+  }
+}

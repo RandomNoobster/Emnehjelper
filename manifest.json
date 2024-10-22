@@ -1,11 +1,14 @@
 {
     "manifest_version": 3,
     "name": "Emnehjelper",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Viser statistikk om karakterer, arbeidsmengde og beståttprosent på emnesiden til NTNU-emner.",
     "background": {
         "service_worker": "service-worker.js"
     },
+    "permissions": [
+        "storage"
+    ],
     "host_permissions": [
         "https://www.karakterweb.no/ntnu/*",
         "https://api.emnr.no/course/*"
@@ -17,12 +20,26 @@
                 "https://www.ntnu.edu/studies/courses/*"
             ],
             "js": [
-                "content.js"
+                "utils.js",
+                "coursePage.js"
             ],
             "css": [
-                "/styles/content.css"
+                "/styles/coursePage.css"
             ],
             "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://www.ntnu.no/studier/*"
+            ],
+            "js": [
+                "utils.js",
+                "courseList.js"
+            ],
+            "css": [
+                "/styles/courseList.css"
+            ],
+            "run_at": "document_idle"
         }
     ],
     "action": {
