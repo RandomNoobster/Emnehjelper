@@ -21,10 +21,10 @@
             ],
             "js": [
                 "utils.js",
-                "coursePage.js"
+                "course-page.js"
             ],
             "css": [
-                "/styles/coursePage.css"
+                "/styles/course-page.css"
             ],
             "run_at": "document_end"
         },
@@ -34,10 +34,10 @@
             ],
             "js": [
                 "utils.js",
-                "courseList.js"
+                "course-list.js"
             ],
             "css": [
-                "/styles/courseList.css"
+                "/styles/course-list.css"
             ],
             "run_at": "document_idle"
         }
