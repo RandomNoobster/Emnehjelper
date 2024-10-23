@@ -8,6 +8,10 @@ Du kan installere Emnehjelper fra Chrome Web Store [her](https://chromewebstore.
 
 ## Bildekatalog
 
+| ![Før- og etter bilde av en studieplan](/media/study_plan_comparison_light_lowres.png) |
+| -------------------------------------------------------------------------------------- |
+| Dette bildet viser en studieplan med og uten Emnehjelper.                              |
+
 | ![Bilde av en oppgradert studieplan](/media/study_plan_light_lowres.png)        |
 | ------------------------------------------------------------------------------- |
 | Dette bildet viser det forbedrede utseende til studieplaner på sidene til NTNU. |
