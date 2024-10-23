@@ -108,6 +108,7 @@ function addCourseNameHoverEffect(courseNameCell) {
         rows.forEach((row) => {
           const emnekode = row.classList[1];
           const cell = row.querySelector("td");
+          if (cell.classList.contains("emnehjelper-info")) return;
           const courseNameCell = row.querySelector("td:nth-child(2) > span");
           addCourseNameHoverEffect(courseNameCell);
 
@@ -126,8 +127,7 @@ function addCourseNameHoverEffect(courseNameCell) {
                 response.karakterwebData
               );
 
-              if (!mergedData || cell.classList.contains("emnehjelper-info"))
-                return;
+              if (!mergedData) return;
 
               const {
                 average_difficulty,
