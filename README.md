@@ -6,16 +6,16 @@ Du kan installere Emnehjelper fra Chrome Web Store [her](https://chromewebstore.
 
 ## Bildekatalog
 
-| ![Bilde av den modifiserte emnesiden i lys modus](/media/docs/demo_img1.png) |
+| ![Bilde av den modifiserte emnesiden i lys modus](/media/demo_img1.png) |
 |-------------------------------------------------------------------------------|
 | Dette bildet viser den modifiserte NTNU-emnesiden i lys modus, med et lyst brukergrensesnitt. |
 
 
-| ![Bilde av den modifiserte emnesiden i mørk modus](/media/docs/demo_img2.png) |
+| ![Bilde av den modifiserte emnesiden i mørk modus](/media/demo_img2.png) |
 |-------------------------------------------------------------------------------|
 | Dette bildet viser den modifiserte NTNU-emnesiden i mørk modus, med et mørkt brukergrensesnitt. |
 
 
-| ![Bilde av popupen til utvidelsen](/media/docs/demo_img3.png) |
+| ![Bilde av popupen til utvidelsen](/media/demo_img3.png) |
 |---------------------------------------------------------------|
 | Dette bildet viser popupen til utvidelsen. |
