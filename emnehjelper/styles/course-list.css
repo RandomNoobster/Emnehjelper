@@ -45,8 +45,8 @@
   color: #ffffff; /* White text */
 }
 
-table.courselist tr td:first-child {
-  min-width: max-content;
+table.courselist tr th:first-child {
+  width: 400px;
 }
 
 table.courselist tr td:nth-child(2) {
@@ -57,28 +57,22 @@ table.courselist tr td:nth-child(2) {
   }
 }
 
-table.courselist {
-  table-layout: auto !important;
-}
-
-.courseCollapse {
-  overflow-y: clip !important;
-}
-
-.toggler a {
-  border-radius: 4px;
-  width: fit-content;
-  padding: 0px 10px;
-  margin: 1px auto;
-  border: 1px solid #dfdfdf;
-}
-
 .plannerWrapper {
   padding-right: 0px !important;
 }
 
-.wrap.affix, .wrap.affix-top {
+.wrap.affix,
+.wrap.affix-top {
   display: none;
+}
+
+@media screen and (max-width: 991px) {
+  table.courselist tr th:first-child {
+    width: auto;
+  }
+  .tag {
+    display: inline-block;
+  }
 }
 
 /* Loading animation with bouncing dots */
