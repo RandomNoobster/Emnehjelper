@@ -16,9 +16,13 @@
 
 .popup p {
   margin: 20px 0 0;
-  color: #333;
+  color: black;
   white-space: nowrap;
   width: fit-content;
+}
+
+.popup span {
+  color: black
 }
 
 .popup td {
@@ -53,17 +57,16 @@
   height: 6px;
   border-radius: 5px;
   outline: none;
-  opacity: 0.7;
-  cursor: pointer;
-  transition: opacity 0.2s;
+  opacity: 0.8;
+  pointer-events: none;
 }
 
 .popup .low-is-good {
-  background-image: linear-gradient(to right, #4caf50, #af4c4c);
+  background-image: linear-gradient(to right, #3cb340, #b63c3c);
 }
 
 .popup .high-is-good {
-  background-image: linear-gradient(to right, #af4c4c, #4caf50);
+  background-image: linear-gradient(to right, #b63c3c, #3cb340);
 }
 
 .popup .scale {
@@ -81,7 +84,7 @@
   width: min-content;
   text-align: center;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgb(100, 100, 100);
 }
 
 .popup .disclaimer {

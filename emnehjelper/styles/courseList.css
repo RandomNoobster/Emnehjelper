@@ -50,9 +50,6 @@ table.courselist tr td:first-child {
 }
 
 table.courselist tr td:nth-child(2) {
-  max-width: 200px;
-  min-width: 200px;
-
   .expanded {
     overflow: visible;
     white-space: normal;
@@ -74,6 +71,14 @@ table.courselist {
   padding: 0px 10px;
   margin: 1px auto;
   border: 1px solid #dfdfdf;
+}
+
+.plannerWrapper {
+  padding-right: 0px !important;
+}
+
+.wrap.affix, .wrap.affix-top {
+  display: none;
 }
 
 /* Loading animation with bouncing dots */
