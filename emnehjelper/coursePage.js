@@ -10,7 +10,7 @@ const ENDPOINTS = {
 const ColorScheme = {
   LOW_IS_GOOD: "low-is-good",
   HIGH_IS_GOOD: "high-is-good",
-}
+};
 
 const WorkloadLevels = {
   LOW: 0,
@@ -31,6 +31,11 @@ const Grades = {
   C: 3,
   B: 4,
   A: 5,
+};
+
+const PassLevels = {
+  IKKE_BESTÅTT: 0,
+  BESTÅTT: 100,
 };
 
 const WORKLOAD_LABELS = {
@@ -54,7 +59,10 @@ const GRADE_LABELS = {
   [Grades.A]: "A",
 };
 
-const PASS_FAIL_LABELS = ["Ikke Bestått", "Bestått"];
+const PASS_FAIL_LABELS = {
+  [PassLevels.IKKE_BESTÅTT]: "Ikke Bestått",
+  [PassLevels.BESTÅTT]: "Bestått",
+};
 
 function extractEmnekodeFromURL(url) {
   const match = url.match(URL_REGEX);
@@ -82,6 +90,7 @@ function createLinkElement(href, text) {
   const link = document.createElement("a");
   link.href = href;
   link.textContent = text;
+  link.target = "_blank";
   return link;
 }
 
@@ -145,15 +154,27 @@ function makePopUp(data, emnekode) {
     DifficultyLevels.HARD,
     ColorScheme.LOW_IS_GOOD
   );
-  addSlider(
-    popup,
-    "Gjennomsnittskarakter: ",
-    data.average_grade,
-    GRADE_LABELS,
-    Grades.F,
-    Grades.A,
-    ColorScheme.HIGH_IS_GOOD
-  );
+  if (!data.is_graded) {
+    addSlider(
+      popup,
+      "Beståttprosent: ",
+      data.pass_rate,
+      PASS_FAIL_LABELS,
+      PassLevels.IKKE_BESTÅTT,
+      PassLevels.BESTÅTT,
+      ColorScheme.HIGH_IS_GOOD
+    );
+  } else {
+    addSlider(
+      popup,
+      "Gjennomsnittskarakter: ",
+      data.average_grade,
+      GRADE_LABELS,
+      Grades.F,
+      Grades.A,
+      ColorScheme.HIGH_IS_GOOD
+    );
+  }
 
   // Add disclaimer and draggable functionality
   addBr(popup);
@@ -197,10 +218,15 @@ function addSlider(parent, label, value, scaleLabels, min, max, colorScheme) {
   sliderText.textContent = label;
 
   // Display value or "-" if invalid
-  const displayValue =
-    value >= min && value <= max
-      ? `${scaleLabels[Math.round(value)]} (${value.toFixed(2)})`
-      : "- (-.--)";
+  let displayValue;
+  if (scaleLabels === PASS_FAIL_LABELS) {
+    displayValue = value.toFixed(2) + "%";
+  } else {
+    displayValue =
+      value >= min && value <= max
+        ? `${scaleLabels[Math.round(value)]} (${value.toFixed(2)})`
+        : "- (-.--)";
+  }
   sliderValue.textContent = displayValue;
   sliderValue.className = "slider-value";
 

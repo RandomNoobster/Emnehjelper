@@ -33,8 +33,8 @@ const DESCRIPTIONS = {
     { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
   ],
   PASS: [
-    { threshold: 0.5, label: "Ikke Bestått", color: TAG_COLORS.RED },
-    { threshold: 1, label: "Bestått", color: TAG_COLORS.GREEN },
+    { threshold: 50, label: "Ikke Bestått", color: TAG_COLORS.RED },
+    { threshold: 100, label: "Bestått", color: TAG_COLORS.GREEN },
     { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
   ],
 };
@@ -45,6 +45,7 @@ const TOOLTIP_TEXT = {
   WORKLOAD:
     "Vektet gjennomsnitt av arbeidsmengdene rapportert av emnr og karakterweb\nSkala: Ikke Arbeidsomt - Lite Arbeidsomt - Arbeidsomt - Svært Arbeidsomt",
   GRADE: "Gjennomsnittlig karakter gjennom årene\nSkala: F - E - D - C - B - A",
+  PASS: "Andel studenter som har bestått emnet",
 };
 
 // Function to get the appropriate description for difficulty or workload
@@ -103,7 +104,7 @@ function addCourseNameHoverEffect(courseNameCell) {
       mutation.addedNodes.forEach((node) => {
         if (!node.querySelectorAll) return;
         const rows = node.querySelectorAll("tr.course");
-        
+
         rows.forEach((row) => {
           const emnekode = row.classList[1];
           const cell = row.querySelector("td");
@@ -136,6 +137,8 @@ function addCourseNameHoverEffect(courseNameCell) {
                 emnr_review_count,
                 karakterweb_review_count,
                 review_count,
+                is_graded,
+                pass_rate,
               } = mergedData;
 
               if (loadingAnimation) loadingAnimation.remove();
@@ -165,11 +168,17 @@ function addCourseNameHoverEffect(courseNameCell) {
               cell.appendChild(workloadAbbr);
 
               // Create and append grade abbr element
-              const gradeAbbr = createAbbrElement(
-                getDescription(average_grade, "grade"),
-                getColorClass(average_grade, "grade"),
-                TOOLTIP_TEXT.GRADE
-              );
+              const gradeAbbr = is_graded
+                ? createAbbrElement(
+                    getDescription(average_grade, "grade"),
+                    getColorClass(average_grade, "grade"),
+                    TOOLTIP_TEXT.GRADE
+                  )
+                : createAbbrElement(
+                    getDescription(pass_rate, "pass"),
+                    getColorClass(pass_rate, "pass"),
+                    TOOLTIP_TEXT.PASS
+                  );
               cell.appendChild(gradeAbbr);
 
               // Mark the cell as processed
