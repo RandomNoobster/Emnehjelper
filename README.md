@@ -28,9 +28,9 @@ Du kan installere Emnehjelper fra Chrome Web Store [her](https://chromewebstore.
 | ----------------------------------------------------------------------------------------------- |
 | Denne GIFen viser hvordan man kan dra rundt på popupen på emnesiden.                            |
 
-| ![Bilde av popupen til utvidelsen](/media/demo_img3.png) |
-| -------------------------------------------------------- |
-| Dette bildet viser popupen til utvidelsen.               |
+| ![Bilde av om-popupen til utvidelsen](/media/about_popup_lowres.png) |
+| -------------------------------------------------------------------- |
+| Dette bildet viser om-popupen til utvidelsen.                        |
 
 | ![Plakat for markedsføring av Emnehjelper](/media/poster.png) |
 | ------------------------------------------------------------- |
