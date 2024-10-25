@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Emnehjelper",
     "version": "1.2.2",
-    "description": "Viser statistikk om karakterer, arbeidsmengde og beståttprosent på emnesiden til NTNU-emner.",
+    "description": "Viser statistikk om karakterer, arbeidsmengde og vanskelighetsgrad rett i studieplanen din og på alle emnesidene til NTNU-emner.",
     "background": {
         "service_worker": "service-worker.js"
     },
