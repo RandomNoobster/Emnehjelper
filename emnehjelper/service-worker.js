@@ -55,9 +55,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                   emnrResponse = data;
                 }),
               fetchWithRetry(
-                `https://www.karakterweb.no/api/v1/evals/NTNU/${message.emnekode}/`
+                `https://www.karakterweb.no/api/evals?institute=NTNU&courseCode=${message.emnekode}`
               ).then((data) => {
-                karakterwebResponse = data.data;
+                karakterwebResponse = data;
               }),
             ])
               .then(() => {
