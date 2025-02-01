@@ -30,7 +30,10 @@
         },
         {
             "matches": [
-                "https://www.ntnu.no/studier/*"
+                "https://www.ntnu.no/studier/*",
+                "https://www.ntnu.edu/studies/*",
+                "https://www.ntnu.no/studier/emner#",
+                "https://www.ntnu.edu/studies/courses#"
             ],
             "js": [
                 "utils.js",

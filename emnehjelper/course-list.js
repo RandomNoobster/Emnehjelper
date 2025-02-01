@@ -102,14 +102,19 @@ function addCourseNameHoverEffect(courseNameCell) {
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
-        if (!node.querySelectorAll) return;
-        const rows = node.querySelectorAll("tr.course");
+        if (!node.querySelectorAll) {
+          return;
+        }
+        let rows = node.querySelectorAll("tr.course, tr.courserow");
+        if (rows.length == 0 && node.classList.contains("courserow")) {
+          rows = [node];
+        }
 
         rows.forEach((row) => {
-          const emnekode = row.classList[1];
           const cell = row.querySelector("td");
+          const emnekode = row.classList[1] ?? cell.textContent;
           if (cell.classList.contains("emnehjelper-info")) return;
-          const courseNameCell = row.querySelector("td:nth-child(2) > span");
+          const courseNameCell = row.querySelector("td:nth-child(2) > span") ?? row.querySelector("td.coursecode");
           addCourseNameHoverEffect(courseNameCell);
 
           const loadingAnimation = createLoadingAnimation();
