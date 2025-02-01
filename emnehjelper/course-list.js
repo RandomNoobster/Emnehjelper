@@ -8,6 +8,7 @@ const TAG_COLORS = {
   GRAY: "gray",
 };
 
+// The thresholds are the upper bounds for each description
 const DESCRIPTIONS = {
   DIFFICULTY: [
     { threshold: 0.5, label: "Svært Lett", color: TAG_COLORS.GREEN },
@@ -98,102 +99,10 @@ function addCourseNameHoverEffect(courseNameCell) {
   });
 }
 
-(async function () {
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        if (!node.querySelectorAll) return;
-        const rows = node.querySelectorAll("tr.course");
-
-        rows.forEach((row) => {
-          const emnekode = row.classList[1];
-          const cell = row.querySelector("td");
-          if (cell.classList.contains("emnehjelper-info")) return;
-          const courseNameCell = row.querySelector("td:nth-child(2) > span");
-          addCourseNameHoverEffect(courseNameCell);
-
-          const loadingAnimation = createLoadingAnimation();
-          cell.appendChild(loadingAnimation);
-
-          // Fetch data for each row immediately and update the DOM
-          chrome.runtime
-            .sendMessage({
-              contentScriptQuery: "get-karakter-data",
-              emnekode: emnekode,
-            })
-            .then((response) => {
-              const mergedData = mergeData(
-                response.emnrData,
-                response.karakterwebData
-              );
-
-              if (!mergedData) return;
-
-              const {
-                average_difficulty,
-                average_workload,
-                average_grade_letter,
-                average_grade,
-                emnr_review_count,
-                karakterweb_review_count,
-                review_count,
-                is_graded,
-                pass_rate,
-              } = mergedData;
-
-              if (loadingAnimation) loadingAnimation.remove();
-
-              // Create and append review abbr element
-              const reviewAbbr = createAbbrElement(
-                `${review_count}`,
-                TAG_COLORS.GRAY,
-                `Antall anmeldelser (${emnr_review_count} fra emnr og ${karakterweb_review_count} fra karakterweb)`
-              );
-              cell.appendChild(reviewAbbr);
-
-              // Create and append difficulty abbr element
-              const difficultyAbbr = createAbbrElement(
-                getDescription(average_difficulty, "difficulty"),
-                getColorClass(average_difficulty, "difficulty"),
-                TOOLTIP_TEXT.DIFFICULTY
-              );
-              cell.appendChild(difficultyAbbr);
-
-              // Create and append workload abbr element
-              const workloadAbbr = createAbbrElement(
-                getDescription(average_workload, "workload"),
-                getColorClass(average_workload, "workload"),
-                TOOLTIP_TEXT.WORKLOAD
-              );
-              cell.appendChild(workloadAbbr);
-
-              // Create and append grade abbr element
-              const gradeAbbr = is_graded
-                ? createAbbrElement(
-                    getDescription(average_grade, "grade"),
-                    getColorClass(average_grade, "grade"),
-                    TOOLTIP_TEXT.GRADE
-                  )
-                : createAbbrElement(
-                    getDescription(pass_rate, "pass"),
-                    getColorClass(pass_rate, "pass"),
-                    TOOLTIP_TEXT.PASS
-                  );
-              cell.appendChild(gradeAbbr);
-
-              // Mark the cell as processed
-              cell.classList.add("emnehjelper-info");
-            })
-            .catch((error) => {
-              console.error(
-                `Error fetching course data for ${emnekode}`,
-                error
-              );
-              if (loadingAnimation) loadingAnimation.remove();
-            });
-        });
-      });
-    });
-  });
-  observer.observe(document, { childList: true, subtree: true });
-})();
+module.exports = {
+  getDescription,
+  getColorClass,
+  createLoadingAnimation,
+  createAbbrElement,
+  addCourseNameHoverEffect,
+};

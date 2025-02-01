@@ -50,10 +50,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             let karakterwebResponse;
 
             Promise.all([
-              fetchWithRetry(`https://api.emnr.no/course/${message.emnekode}/`)
-                .then((data) => {
-                  emnrResponse = data;
-                }),
+              fetchWithRetry(
+                `https://api.emnr.no/course/${message.emnekode}/`
+              ).then((data) => {
+                emnrResponse = data;
+              }),
               fetchWithRetry(
                 `https://www.karakterweb.no/api/v1/evals/NTNU/${message.emnekode}/`
               ).then((data) => {

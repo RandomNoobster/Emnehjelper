@@ -10,7 +10,7 @@
         "storage"
     ],
     "host_permissions": [
-        "https://www.karakterweb.no/ntnu/*",
+        "https://www.karakterweb.no/api/*",
         "https://api.emnr.no/course/*"
     ],
     "content_scripts": [
@@ -21,12 +21,14 @@
             ],
             "js": [
                 "utils.js",
-                "course-page.js"
+                "course-page.js",
+                "course-page-dom-utils.js"
             ],
             "css": [
                 "/styles/course-page.css"
             ],
-            "run_at": "document_end"
+            "run_at": "document_end",
+            "type": "module"
         },
         {
             "matches": [
@@ -34,12 +36,14 @@
             ],
             "js": [
                 "utils.js",
-                "course-list.js"
+                "course-list.js",
+                "course-list-dom-utils.js"
             ],
             "css": [
                 "/styles/course-list.css"
             ],
-            "run_at": "document_idle"
+            "run_at": "document_idle",
+            "type": "module"
         }
     ],
     "action": {

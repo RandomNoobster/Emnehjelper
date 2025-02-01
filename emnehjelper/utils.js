@@ -5,7 +5,7 @@ function mergeData(emnrData, karakterwebData) {
   let karakterWebAverageDifficulty = 0;
   let karakterWebAverageWorkload = 0;
 
-  emnrData.review_count = emnrData.review_count ?? 0;
+  emnrData.review_count = emnrData?.review_count ?? 0;
 
   const is_graded =
     emnrData.average_grade_letter != null || emnrData.pass_rate <= 0;
@@ -21,7 +21,7 @@ function mergeData(emnrData, karakterwebData) {
     }
   }
 
-  karakterwebData.forEach((question) => {
+  karakterwebData?.forEach?.((question) => {
     // Find the highest review count and use it
     karakterWebReviewCount = Math.max(
       karakterWebReviewCount,
@@ -77,3 +77,7 @@ function mergeData(emnrData, karakterwebData) {
     karakterweb_review_count: karakterWebReviewCount,
   };
 }
+
+module.exports = {
+  mergeData,
+};
