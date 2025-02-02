@@ -95,8 +95,26 @@ function createLinkElement(href, text) {
 }
 
 function makePopUp(data, emnekode) {
+  const popupParent = document.createElement("div");
+  popupParent.className = "popup";
   const popup = document.createElement("div");
-  popup.className = "popup";
+
+  // Minimize button
+  const minimizeButton = document.createElement("button");
+  minimizeButton.className = "popup-minimize";
+  minimizeButton.textContent = "−"; // A minus sign for minimizing
+  minimizeButton.onclick = () => togglePopup(false);
+
+  // Bubble (hidden by default)
+  const bubble = document.createElement("img");
+  bubble.className = "popup-bubble hidden";
+  bubble.src = chrome.runtime.getURL("media/e-h128.png");
+  bubble.alt = "Emnehjelper Logo";
+  bubble.onclick = () => togglePopup(true);
+
+  popupParent.appendChild(popup);
+  popupParent.appendChild(bubble);
+  popup.appendChild(minimizeButton);
 
   // Add links
   popup.appendChild(
@@ -131,7 +149,18 @@ function makePopUp(data, emnekode) {
     )
   );
   table.appendChild(
-    createTableRow("Antall reviews:", `${data.review_count ?? "--"}`)
+    createTableRow(
+      "Antall reviews:",
+      `${data.review_count ?? "--"} (${
+        data.emnr_review_count
+      } <img class="small-logo" alt="emnr" src="${chrome.runtime.getURL(
+        "media/emnr.ico"
+      )}"> + ${
+        data.karakterweb_review_count
+      } <img class="small-logo" alt="karakterweb" src="${chrome.runtime.getURL(
+        "media/karakterweb.ico"
+      )}">)`
+    )
   );
   popup.appendChild(table);
 
@@ -179,10 +208,33 @@ function makePopUp(data, emnekode) {
   // Add disclaimer and draggable functionality
   addBr(popup);
   addDisclaimer(popup);
-  makePopupDraggable(popup);
+  makePopupDraggable(popupParent);
 
-  // Append the popup to the body
-  document.body.appendChild(popup);
+  // Append elements
+  document.body.appendChild(popupParent);
+
+  // Toggle popup visibility
+  function togglePopup(showPopup) {
+    console.log("Toggling popup visibility:", showPopup);
+
+    popupParent.style.left = "";
+    popupParent.style.right = "10px";
+    popupParent.style.top = "10px";
+
+    if (showPopup) {
+      popupParent.classList.remove("popup-bubblified");
+      popup.classList.remove("hidden");
+      bubble.classList.add("hidden");
+    } else {
+      popupParent.style.transition = "padding 0.05s";
+      popupParent.classList.add("popup-bubblified");
+      popup.classList.add("hidden");
+      bubble.classList.remove("hidden");
+      requestAnimationFrame(() => {
+        popupParent.style.transition = "padding 0.2s";
+      });
+    }
+  }
 }
 
 // Utility to create a table row
@@ -192,7 +244,7 @@ function createTableRow(label, value) {
   const valueCell = document.createElement("td");
 
   labelCell.textContent = label;
-  valueCell.textContent = value;
+  valueCell.innerHTML = value;
 
   row.appendChild(labelCell);
   row.appendChild(valueCell);

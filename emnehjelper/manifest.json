@@ -45,6 +45,10 @@
             "run_at": "document_idle"
         }
     ],
+    "web_accessible_resources": [{
+        "matches": ["<all_urls>"],
+        "resources": ["/media/e-h128.png", "/media/emnr.ico", "/media/karakterweb.ico"]
+    }],
     "action": {
         "default_title": "Hei! Klar for å utforske NTNU-emner? 🎓✨",
         "default_popup": "about.html",
