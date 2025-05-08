@@ -54,3 +54,13 @@ p {
   display: block;
   text-align: left;
 }
+
+.feedback p, .feedback a {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 0px;
+}
+
+.feedback a:hover {
+  color: #003d99;
+}
