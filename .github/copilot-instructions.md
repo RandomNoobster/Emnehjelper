@@ -25,9 +25,11 @@ Content Script → service-worker.js → [emnr API + karakterweb API] → Cache 
 ```
 
 **Key Pattern**: `service-worker.js` handles all API calls with:
-- 24-hour cache in `chrome.storage.local` (key: `karakter-data-{emnekode}`)
+- 72-hour cache in `chrome.storage.local` (key: `karakter-data-{emnekode}`)
+- **Only caches complete data** - partial/failed responses are NOT cached, so failed APIs are retried on next visit
 - Deduplication via `callsToEmnekode` object to prevent duplicate requests
 - Fetch retry logic (1 retry with 500ms delay)
+- `Promise.allSettled()` allows partial success - if one API fails, the other's data is still used
 
 **Data merging** (`utils.js:mergeData()`): Weighted average combining emnr and karakterweb review counts. Note rescaling: karakterweb answers (0-4 scale) → divide by 2 → match emnr (0-2 scale).
 
@@ -80,10 +82,18 @@ Check `cell.classList.contains("emnehjelper-info")` to avoid re-processing rows.
 - Create git tags for each release (e.g., `v1.2.7`)
 - No automated testing framework yet (TODO)
 
+### Error Handling Pattern
+- `service-worker.js`: Checks HTTP status codes before parsing JSON; retries failed requests once
+- `utils.js:mergeData()`: Returns `null` only if BOTH APIs fail; handles partial data gracefully by using defaults for missing API
+- Content scripts: Check for `null` from `mergeData()` and gracefully clean up (remove loading animations, skip rendering)
+- **Partial data support**: If only one API fails, extension displays data from the working API with appropriate warnings
+- **Visual error indicators**: 
+  - Study plan tables: Warning emoji (⚠️) tag shown when API fails
+  - Course page popup: Yellow warning banner at top explaining which API(s) failed
+  - Both show tooltips/messages like "Data fra emnr kunne ikke hentes"
+
 ### Known TODOs
 - Implement testing framework
-- Improve edge case handling for failed API requests in `service-worker.js`
-- Better error handling in `utils.js:mergeData()` when data is missing or malformed
 
 ## Language & Localization
 All user-facing text in Norwegian (Bokmål):

@@ -1,4 +1,32 @@
 function mergeData(emnrData, karakterwebData) {
+  // Guard clause - only return null if BOTH are null
+  if (!emnrData && !karakterwebData) {
+    console.error("mergeData called with both null data");
+    return null;
+  }
+
+  // Handle case where only karakterwebData is null
+  if (!karakterwebData || !Array.isArray(karakterwebData)) {
+    if (karakterwebData !== null) {
+      console.warn("karakterwebData is not an array, using empty array");
+    }
+    karakterwebData = [];
+  }
+
+  // Handle case where only emnrData is null - create minimal valid object
+  if (!emnrData) {
+    console.warn("emnrData is null, using defaults");
+    emnrData = {
+      course_code: null,
+      review_count: 0,
+      average_grade: -1,
+      average_grade_letter: null,
+      pass_rate: 0,
+      average_difficulty: 0,
+      average_workload: 0,
+    };
+  }
+
   let karakterWebWorkloadReviewCount = 0;
   let karakterWebDifficultyReviewCount = 0;
   let karakterWebReviewCount = 0;

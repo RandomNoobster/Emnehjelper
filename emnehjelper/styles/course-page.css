@@ -100,6 +100,25 @@
   margin-left: 15px;
 }
 
+.popup .warning-banner {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  color: #856404;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popup .warning-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
 .popup .scale span {
   font-size: 0.75em;
   color: #666;

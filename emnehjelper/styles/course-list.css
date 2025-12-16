@@ -45,6 +45,22 @@
   color: #ffffff; /* White text */
 }
 
+/* Warning tag for API errors */
+.warning {
+  background-color: #ffc107; /* Warning yellow */
+  color: #000000; /* Black text */
+  font-size: 16px;
+  cursor: help;
+}
+
+/* Warning emoji for API errors (no pill) */
+.warning-emoji {
+  cursor: help;
+  font-size: 16px;
+  margin: 0 5px;
+  text-decoration: none !important;
+}
+
 table.courselist tr th:first-child {
   width: 400px;
 }

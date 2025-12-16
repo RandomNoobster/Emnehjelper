@@ -132,7 +132,10 @@ function addCourseNameHoverEffect(courseNameCell) {
                 response.karakterwebData
               );
 
-              if (!mergedData) return;
+              if (!mergedData) {
+                if (loadingAnimation) loadingAnimation.remove();
+                return;
+              }
 
               const {
                 average_difficulty,
@@ -147,6 +150,22 @@ function addCourseNameHoverEffect(courseNameCell) {
               } = mergedData;
 
               if (loadingAnimation) loadingAnimation.remove();
+
+              // Check for API failures and show warning if needed
+              const hasEmnrData = response.emnrData !== null;
+              const hasKarakterweb = response.karakterwebData !== null;
+              
+              if (!hasEmnrData || !hasKarakterweb) {
+                const failedAPIs = [];
+                if (!hasEmnrData) failedAPIs.push('emnr');
+                if (!hasKarakterweb) failedAPIs.push('karakterweb');
+                
+                const warningSpan = document.createElement('abbr');
+                warningSpan.className = 'warning-emoji';
+                warningSpan.textContent = '\u26a0\ufe0f';
+                warningSpan.title = `Advarsel: Data fra ${failedAPIs.join(' og ')} kunne ikke hentes. Viser kun tilgjengelig data.`;
+                cell.appendChild(warningSpan);
+              }
 
               // Create and append review abbr element
               const reviewAbbr = createAbbrElement(

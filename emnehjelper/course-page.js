@@ -94,7 +94,7 @@ function createLinkElement(href, text) {
   return link;
 }
 
-function makePopUp(data, emnekode) {
+function makePopUp(data, emnekode, response) {
   const popupParent = document.createElement("div");
   popupParent.className = "popup";
   const popup = document.createElement("div");
@@ -115,6 +115,18 @@ function makePopUp(data, emnekode) {
   popupParent.appendChild(popup);
   popupParent.appendChild(bubble);
   popup.appendChild(minimizeButton);
+
+  // Add warning banner if any API failed
+  if (response && (response.emnrData === null || response.karakterwebData === null)) {
+    const failedAPIs = [];
+    if (response.emnrData === null) failedAPIs.push('emnr');
+    if (response.karakterwebData === null) failedAPIs.push('karakterweb');
+    
+    const warning = document.createElement("div");
+    warning.className = "warning-banner";
+    warning.innerHTML = `<span class="warning-icon">⚠️</span> Data fra ${failedAPIs.join(' og ')} kunne ikke hentes. Viser kun tilgjengelig data.`;
+    popup.appendChild(warning);
+  }
 
   // Add links
   popup.appendChild(
@@ -355,9 +367,13 @@ function addBr(parent) {
 
   if (emnekode) {
     console.debug("Emnekode fra URL:", emnekode);
-    const { emnrData, karakterwebData } = await fetchCourseData(emnekode);
-    const mergedData = mergeData(emnrData, karakterwebData);
-    makePopUp(mergedData, emnekode);
+    const response = await fetchCourseData(emnekode);
+    const mergedData = mergeData(response.emnrData, response.karakterwebData);
+    if (mergedData) {
+      makePopUp(mergedData, emnekode, response);
+    } else {
+      console.error("Failed to merge course data for:", emnekode);
+    }
   } else {
     console.error("Emnekode not found in the URL.");
   }

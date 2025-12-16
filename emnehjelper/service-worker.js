@@ -3,7 +3,7 @@ const callsToEmnekode = {}; // Tracks ongoing calls
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.contentScriptQuery === "get-karakter-data") {
     const cacheKey = `karakter-data-${message.emnekode}`;
-    const cacheTTL = 24 * 60 * 60 * 1000; // 1 days in milliseconds
+    const cacheTTL = 72 * 60 * 60 * 1000; // 3 days in milliseconds
 
     // Function to fetch data with retry
     const fetchWithRetry = (url, retryCount = 1) => {
@@ -12,7 +12,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           Accept: "application/json",
         },
       })
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          return response.json();
+        })
         .catch((error) => {
           console.error(`Fetch failed: ${url}`, error);
           if (retryCount > 0) {
@@ -46,40 +51,40 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           if (cachedData && Date.now() - cachedData.timestamp < cacheTTL) {
             resolve(cachedData.data);
           } else {
-            let emnrResponse;
-            let karakterwebResponse;
-
-            Promise.all([
-              fetchWithRetry(`https://api.emnr.no/course/${message.emnekode}/`)
-                .then((data) => {
-                  emnrResponse = data;
-                }),
+            // Fetch both APIs with individual error handling to allow partial success
+            Promise.allSettled([
+              fetchWithRetry(`https://api.emnr.no/course/${message.emnekode}/`),
               fetchWithRetry(
                 `https://www.karakterweb.no/api/evals?institute=NTNU&courseCode=${message.emnekode}`
-              ).then((data) => {
-                karakterwebResponse = data;
-              }),
+              ),
             ])
-              .then(() => {
+              .then(([emnrResult, karakterwebResult]) => {
+                const emnrResponse = emnrResult.status === "fulfilled" ? emnrResult.value : null;
+                const karakterwebResponse = karakterwebResult.status === "fulfilled" ? karakterwebResult.value : null;
+
+                // Log any failures
+                if (emnrResult.status === "rejected") {
+                  console.error("emnr API failed:", emnrResult.reason);
+                }
+                if (karakterwebResult.status === "rejected") {
+                  console.error("karakterweb API failed:", karakterwebResult.reason);
+                }
+
                 const responseData = {
                   emnrData: emnrResponse,
                   karakterwebData: karakterwebResponse,
                 };
 
-                // Cache the response with a timestamp
-                chrome.storage.local.set({
-                  [cacheKey]: { data: responseData, timestamp: Date.now() },
-                });
+                // Only cache if BOTH APIs succeeded (don't cache partial/failed data)
+                if (emnrResponse !== null && karakterwebResponse !== null) {
+                  chrome.storage.local.set({
+                    [cacheKey]: { data: responseData, timestamp: Date.now() },
+                  });
+                } else {
+                  console.warn(`Not caching partial data for ${message.emnekode}`);
+                }
 
                 resolve(responseData);
-              })
-              .catch((error) => {
-                console.error("Error fetching data:", error);
-                resolve({
-                  emnrData: null,
-                  karakterwebData: null,
-                  error: "Failed to fetch data",
-                });
               });
           }
         });
