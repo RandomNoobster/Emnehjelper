@@ -136,6 +136,197 @@ Requires `host_permissions` in `manifest.json`. No npm packages or bundlers used
 // 5. Main initialization (IIFE at bottom)
 ```
 
+## Example Response from karakterweb API
+```json
+{
+    "grades": {
+        "Emnekode": "SPRÅK3501-1",
+        "data": [
+            {
+                "Antall_kandidater_totalt": 101,
+                "Antall_kandidater_menn": 68,
+                "Antall_kandidater_kvinner": 33,
+                "Karakterfordeling": {
+                    "Bestått": {
+                        "Alle": 101,
+                        "Menn": 68,
+                        "Kvinner": 33
+                    },
+                    "Ikke bestått": {
+                        "Alle": 0,
+                        "Menn": 0,
+                        "Kvinner": 0
+                    }
+                },
+                "Karakterskala": "G-H",
+                "Semester": "Høst",
+                "Årstall": "2012"
+            },
+            {
+                "Antall_kandidater_totalt": 87,
+                "Antall_kandidater_menn": 54,
+                "Antall_kandidater_kvinner": 33,
+                "Karakterfordeling": {
+                    "Bestått": {
+                        "Alle": 87,
+                        "Menn": 54,
+                        "Kvinner": 33
+                    },
+                    "Ikke bestått": {
+                        "Alle": 0,
+                        "Menn": 0,
+                        "Kvinner": 0
+                    }
+                },
+                "Karakterskala": "G-H",
+                "Semester": "Høst",
+                "Årstall": "2013"
+            }
+        ]
+    },
+    "evaluations": [
+        {
+            "questionId": 0,
+            "question": "Hva er ditt generelle inntrykk av kurset?",
+            "answers": [
+                {
+                    "answerId": 0,
+                    "answer": "Svært dårlig",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 1,
+                    "answer": "Dårlig",
+                    "count": 2,
+                    "active": false
+                },
+                {
+                    "answerId": 2,
+                    "answer": "Nøytral",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 3,
+                    "answer": "Bra",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 4,
+                    "answer": "Svært bra",
+                    "count": 0,
+                    "active": false
+                }
+            ],
+            "answersTotal": 2
+        },
+        {
+            "questionId": 1,
+            "question": "Hva synes du om emnets nivå?",
+            "answers": [
+                {
+                    "answerId": 0,
+                    "answer": "Svært lett",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 1,
+                    "answer": "Lett",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 2,
+                    "answer": "Passende",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 3,
+                    "answer": "Vanskelig",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 4,
+                    "answer": "Svært vanskelig",
+                    "count": 0,
+                    "active": false
+                }
+            ],
+            "answersTotal": 0
+        },
+        {
+            "questionId": 2,
+            "question": "Hva synes du om arbeidsmengden sett i forhold til antall studiepoeng?",
+            "answers": [
+                {
+                    "answerId": 0,
+                    "answer": "Svært liten",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 1,
+                    "answer": "Liten",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 2,
+                    "answer": "Passe",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 3,
+                    "answer": "Stor",
+                    "count": 0,
+                    "active": false
+                },
+                {
+                    "answerId": 4,
+                    "answer": "Svært stor",
+                    "count": 0,
+                    "active": false
+                }
+            ],
+            "answersTotal": 0
+        }
+    ]
+}
+```
+
+## Example Response from emnr API
+```json
+{
+    "course_code": "TEP4223",
+    "institution": 194,
+    "version": 1,
+    "course_name_norwegian": "Livssyklusanalyse",
+    "course_name_english": "Life Cycle Assessment",
+    "study_level": 500.0,
+    "semester": "HØST",
+    "course_type": "",
+    "is_thesis": false,
+    "credit": 7.5,
+    "language": "ENGELSK",
+    "campus": [],
+    "connected_studyprograms": [],
+    "average_grade": 3.11665098777046,
+    "pass_rate": 94.73684210526316,
+    "review_count": 2,
+    "average_review_score": 5.0,
+    "average_difficulty": 1.0,
+    "average_workload": 2.0,
+    "advanced_sorting_score": -1.0,
+    "average_grade_letter": "C"
+}
+```
+
 ## Maintaining These Instructions
 
 > **Important**: When making significant changes to the project architecture, file structure, data flow, or adding new patterns, update this document to reflect those changes. This ensures Copilot and future contributors have accurate context.
