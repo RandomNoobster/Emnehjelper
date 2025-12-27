@@ -10,50 +10,41 @@ const TAG_COLORS = {
 
 const DESCRIPTIONS = {
   DIFFICULTY: [
-    { threshold: 0.5, label: "Svært Lett", shortLabel: "Lett", color: TAG_COLORS.GREEN },
-    { threshold: 1, label: "Lett", shortLabel: "Lett", color: TAG_COLORS.LIME },
-    { threshold: 1.5, label: "Vanskelig", shortLabel: "Middels", color: TAG_COLORS.ORANGE },
-    { threshold: 2, label: "Svært Vanskelig", shortLabel: "Hard", color: TAG_COLORS.RED },
-    { threshold: Infinity, label: "Ukjent", shortLabel: "—", color: TAG_COLORS.GRAY },
+    { threshold: 0.5, label: "Svært Lett", color: TAG_COLORS.GREEN },
+    { threshold: 1, label: "Lett", color: TAG_COLORS.LIME },
+    { threshold: 1.5, label: "Vanskelig", color: TAG_COLORS.ORANGE },
+    { threshold: 2, label: "Svært Vanskelig", color: TAG_COLORS.RED },
+    { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
   ],
   WORKLOAD: [
-    { threshold: 0.5, label: "Ikke Arbeidsomt", shortLabel: "Lav", color: TAG_COLORS.GREEN },
-    { threshold: 1, label: "Lite Arbeidsomt", shortLabel: "Lav", color: TAG_COLORS.LIME },
-    { threshold: 1.5, label: "Arbeidsomt", shortLabel: "Middels", color: TAG_COLORS.ORANGE },
-    { threshold: 2, label: "Svært Arbeidsomt", shortLabel: "Høy", color: TAG_COLORS.RED },
-    { threshold: Infinity, label: "Ukjent", shortLabel: "—", color: TAG_COLORS.GRAY },
+    { threshold: 0.5, label: "Ikke Arbeidsomt", color: TAG_COLORS.GREEN },
+    { threshold: 1, label: "Lite Arbeidsomt", color: TAG_COLORS.LIME },
+    { threshold: 1.5, label: "Arbeidsomt", color: TAG_COLORS.ORANGE },
+    { threshold: 2, label: "Svært Arbeidsomt", color: TAG_COLORS.RED },
+    { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
   ],
   GRADE: [
-    { threshold: 0.5, label: "F", shortLabel: "F", color: TAG_COLORS.RED },
-    { threshold: 1.5, label: "E", shortLabel: "E", color: TAG_COLORS.RED },
-    { threshold: 2.5, label: "D", shortLabel: "D", color: TAG_COLORS.ORANGE },
-    { threshold: 3.5, label: "C", shortLabel: "C", color: TAG_COLORS.YELLOW },
-    { threshold: 4.5, label: "B", shortLabel: "B", color: TAG_COLORS.LIME },
-    { threshold: 5, label: "A", shortLabel: "A", color: TAG_COLORS.GREEN },
-    { threshold: Infinity, label: "Ukjent", shortLabel: "—", color: TAG_COLORS.GRAY },
+    { threshold: 0.5, label: "F", color: TAG_COLORS.RED },
+    { threshold: 1.5, label: "E", color: TAG_COLORS.RED },
+    { threshold: 2.5, label: "D", color: TAG_COLORS.ORANGE },
+    { threshold: 3.5, label: "C", color: TAG_COLORS.YELLOW },
+    { threshold: 4.5, label: "B", color: TAG_COLORS.LIME },
+    { threshold: 5, label: "A", color: TAG_COLORS.GREEN },
+    { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
   ],
   PASS: [
-    { threshold: 50, label: "Ikke Bestått", shortLabel: "Stryk", color: TAG_COLORS.RED },
-    { threshold: 100, label: "Bestått", shortLabel: "Bestått", color: TAG_COLORS.GREEN },
-    { threshold: Infinity, label: "Ukjent", shortLabel: "—", color: TAG_COLORS.GRAY },
+    { threshold: 50, label: "Ikke Bestått", color: TAG_COLORS.RED },
+    { threshold: 100, label: "Bestått", color: TAG_COLORS.GREEN },
+    { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
   ],
-};
-
-const TOOLTIP_TEXT = {
-  DIFFICULTY:
-    "Vektet gjennomsnitt av vanskelighetsgradene rapportert av emnr og karakterweb\nSkala: Svært Lett - Lett - Vanskelig - Svært Vanskelig",
-  WORKLOAD:
-    "Vektet gjennomsnitt av arbeidsmengdene rapportert av emnr og karakterweb\nSkala: Ikke Arbeidsomt - Lite Arbeidsomt - Arbeidsomt - Svært Arbeidsomt",
-  GRADE: "Gjennomsnittlig karakter gjennom årene\nSkala: F - E - D - C - B - A",
-  PASS: "Andel studenter som har bestått emnet",
 };
 
 const COLUMN_HEADERS = [
-  { label: "Antall", dataAttr: "reviews", sortType: "number" },
-  { label: "Vanskelighet", dataAttr: "difficulty", sortType: "number" },
-  { label: "Arbeidsmengde", dataAttr: "workload", sortType: "number" },
-  { label: "Snitt", dataAttr: "grade", sortType: "number" },
-  { label: "Lenker", dataAttr: "links", sortType: "none" },
+  { label: "Antall", dataAttr: "reviews", sortType: "number", tooltip: "Antall studentvurderinger fra emnr.no og karakterweb.no" },
+  { label: "Vanskelighet", dataAttr: "difficulty", sortType: "number", tooltip: "Vektet gjennomsnitt av vanskelighetsgradene rapportert av emnr og karakterweb\nSkala: Svært Lett - Lett - Vanskelig - Svært Vanskelig" },
+  { label: "Arbeidsmengde", dataAttr: "workload", sortType: "number", tooltip: "Vektet gjennomsnitt av arbeidsmengdene rapportert av emnr og karakterweb\nSkala: Ikke Arbeidsomt - Lite Arbeidsomt - Arbeidsomt - Svært Arbeidsomt" },
+  { label: "Snitt", dataAttr: "grade", sortType: "number", tooltip: "Gjennomsnittlig karakter gjennom årene" },
+  { label: "Lenker", dataAttr: "links", sortType: "none", tooltip: "" },
 ];
 
 const EXTERNAL_LINKS = {
@@ -111,13 +102,17 @@ function createLoadingAnimation() {
 }
 
 // Function to create a compact pill element
-function createPill(text, colorClass, tooltipText) {
+function createPill(text, colorClass, tooltipText = "") {
   const pill = document.createElement("span");
   pill.classList.add("emnehjelper-pill", colorClass);
-  pill.title = tooltipText;
+  if (tooltipText) {
+    pill.title = tooltipText;
+  }
   pill.textContent = text;
   pill.setAttribute("role", "status");
-  pill.setAttribute("aria-label", tooltipText);
+  if (tooltipText) {
+    pill.setAttribute("aria-label", tooltipText);
+  }
   return pill;
 }
 
@@ -170,7 +165,7 @@ function createExternalLink(emnekode, service) {
     link.classList.remove("emnehjelper-link-loading");
     if (!isValid) {
       link.classList.add("emnehjelper-link-invalid");
-      link.title = `${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} har ikke data for dette emnet - Klikk for å sjekke`;
+      link.title = `${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} har ikke data for dette emnet`;
       link.setAttribute("aria-label", `${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} har ikke data for dette emnet`);
     } else {
       link.title = EXTERNAL_LINKS[service].title;
@@ -202,9 +197,22 @@ function addColumnHeaders(table) {
   COLUMN_HEADERS.forEach((col, index) => {
     const th = document.createElement("th");
     th.classList.add("emnehjelper-header");
-    th.textContent = col.label;
+    
+    // Create abbr element with tooltip if tooltip exists
+    if (col.tooltip) {
+      const abbr = document.createElement("abbr");
+      abbr.textContent = col.label;
+      abbr.title = col.tooltip;
+      abbr.style.textDecoration = "underline dotted";
+      abbr.style.cursor = "help";
+      th.appendChild(abbr);
+    } else {
+      th.textContent = col.label;
+    }
+    
     th.dataset.emnehjelperCol = col.dataAttr;
     th.dataset.sortType = col.sortType;
+    th.setAttribute("aria-sort", "none");
     
     if (col.sortType !== "none") {
       th.style.cursor = "pointer";
@@ -231,10 +239,12 @@ function sortTable(table, colIndex, sortType) {
   headers.forEach(h => {
     h.dataset.sortDir = "none";
     h.classList.remove("sort-asc", "sort-desc");
+    h.setAttribute("aria-sort", "none");
   });
   
   header.dataset.sortDir = newDir;
   header.classList.add(newDir === "asc" ? "sort-asc" : "sort-desc");
+  header.setAttribute("aria-sort", newDir === "asc" ? "ascending" : "descending");
   
   // Calculate actual column index (original columns + our custom column index)
   const originalColCount = headerRow.children.length - COLUMN_HEADERS.length;
@@ -365,25 +375,25 @@ function addCourseNameHoverEffect(courseNameCell) {
               // Create difficulty pill
               const difficultyPill = createPill(
                 getDescription(average_difficulty, "difficulty"),
-                getColorClass(average_difficulty, "difficulty"),
-                TOOLTIP_TEXT.DIFFICULTY
+                getColorClass(average_difficulty, "difficulty")
               );
               difficultyCell.appendChild(difficultyPill);
               difficultyCell.dataset.sortValue = getSortValue(average_difficulty);
               
-              // Add review count to its own cell
-              const reviewSpan = document.createElement("span");
-              reviewSpan.classList.add("emnehjelper-reviews");
-              reviewSpan.textContent = review_count;
-              reviewSpan.title = `${review_count} anmeldelser totalt\n${emnr_review_count} fra emnr.no\n${karakterweb_review_count} fra karakterweb.no`;
-              reviewsCell.appendChild(reviewSpan);
+              // Add review count to its own cell with breakdown
+              const reviewAbbr = document.createElement("abbr");
+              reviewAbbr.classList.add("emnehjelper-reviews");
+              reviewAbbr.textContent = review_count;
+              reviewAbbr.title = `${emnr_review_count} fra emnr.no\n${karakterweb_review_count} fra karakterweb.no`;
+              reviewAbbr.style.textDecoration = "underline dotted";
+              reviewAbbr.style.cursor = "help";
+              reviewsCell.appendChild(reviewAbbr);
               reviewsCell.dataset.sortValue = review_count ?? 0;
 
               // Create workload pill
               const workloadPill = createPill(
                 getDescription(average_workload, "workload"),
-                getColorClass(average_workload, "workload"),
-                TOOLTIP_TEXT.WORKLOAD
+                getColorClass(average_workload, "workload")
               );
               workloadCell.appendChild(workloadPill);
               workloadCell.dataset.sortValue = getSortValue(average_workload);
@@ -392,16 +402,14 @@ function addCourseNameHoverEffect(courseNameCell) {
               if (is_graded) {
                 const gradePill = createPill(
                   getDescription(average_grade, "grade"),
-                  getColorClass(average_grade, "grade"),
-                  TOOLTIP_TEXT.GRADE
+                  getColorClass(average_grade, "grade")
                 );
                 gradeCell.appendChild(gradePill);
                 gradeCell.dataset.sortValue = getSortValue(average_grade);
               } else {
                 const passPill = createPill(
                   getDescription(pass_rate, "pass"),
-                  getColorClass(pass_rate, "pass"),
-                  TOOLTIP_TEXT.PASS
+                  getColorClass(pass_rate, "pass")
                 );
                 gradeCell.appendChild(passPill);
                 gradeCell.dataset.sortValue = getSortValue(pass_rate);

@@ -34,8 +34,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             .then((response) => {
               // Accept 200-299 (success) and 300-399 (redirects) as valid
               // Mark 400-599 (client/server errors) as invalid
-              const isValid = response.status >= 200 && response.status < 400;
-              console.log(`[Link Validation] ${url} - Status: ${response.status} - Valid: ${isValid}`);
+              let isValid = response.status >= 200 && response.status < 400;
+              
+              // Check if redirected to base karakterweb page (means course doesn't exist)
+              if (isValid && response.url === "https://www.karakterweb.no/ntnu") {
+                isValid = false;
+                console.log(`[Link Validation] ${url} - Redirected to base page - Invalid`);
+              } else {
+                console.log(`[Link Validation] ${url} - Status: ${response.status} - Valid: ${isValid}`);
+              }
               
               // Cache the result - fetch current cache first to avoid overwriting
               chrome.storage.local.get(VALIDATION_CACHE_KEY, (cacheResult) => {

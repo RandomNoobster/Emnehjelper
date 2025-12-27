@@ -202,6 +202,12 @@ function makePopUp(data, emnekode, response) {
   reviewsSection.appendChild(reviewsBreakdown);
   content.appendChild(reviewsSection);
 
+  // === DISCLAIMER ===
+  const disclaimer = document.createElement("div");
+  disclaimer.className = "disclaimer";
+  disclaimer.textContent = "Statistikken er sammenslått fra emnr og karakterweb:";
+  content.appendChild(disclaimer);
+
   // === SLIDERS SECTION ===
   const slidersSection = document.createElement("div");
   slidersSection.className = "sliders-section";
@@ -256,7 +262,7 @@ function makePopUp(data, emnekode, response) {
   
   const servicesHeader = document.createElement("div");
   servicesHeader.className = "services-header";
-  servicesHeader.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>Se mer på`;
+  servicesHeader.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>Se mer`;
   
   const servicesGrid = document.createElement("div");
   servicesGrid.className = "services-grid";
@@ -272,14 +278,14 @@ function makePopUp(data, emnekode, response) {
     ENDPOINTS.KARAKTERWEB(emnekode),
     chrome.runtime.getURL("media/karakterweb.ico"),
     "Karakterweb",
-    "Karakterfordeling, historikk og vurderinger"
+    "Fordelinger, historikk og vurderinger"
   ));
   
   servicesGrid.appendChild(createServiceButton(
     ENDPOINTS.KARAKTERNET(emnekode),
     chrome.runtime.getURL("media/karakterernet.ico"),
     "Karakterer.net",
-    "Karakterfordeling og historikk"
+    "Karakterfordelinger og historikk"
   ));
   
   servicesGrid.appendChild(createServiceButton(
@@ -292,12 +298,6 @@ function makePopUp(data, emnekode, response) {
   servicesSection.appendChild(servicesHeader);
   servicesSection.appendChild(servicesGrid);
   content.appendChild(servicesSection);
-
-  // === DISCLAIMER ===
-  const disclaimer = document.createElement("div");
-  disclaimer.className = "disclaimer";
-  disclaimer.textContent = "Statistikken er sammenslått fra emnr og karakterweb 🚀";
-  content.appendChild(disclaimer);
 
   popup.appendChild(content);
   popupParent.appendChild(popup);

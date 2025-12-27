@@ -24,19 +24,9 @@
   text-align: center !important;
 }
 
-/* Sort indicators */
+/* Hover effect for sortable columns - let NTNU's default CSS handle sort indicators */
 .emnehjelper-header[data-sort-type]:not([data-sort-type="none"]):hover {
   background-color: rgba(0, 0, 0, 0.05);
-}
-
-.emnehjelper-header.sort-asc::after {
-  content: " ▲";
-  font-size: 10px;
-}
-
-.emnehjelper-header.sort-desc::after {
-  content: " ▼";
-  font-size: 10px;
 }
 
 /* Column width variations - order: Antall, Vanskelighet, Arbeidsmengde, Snitt, Lenker */
@@ -69,7 +59,7 @@ table.courselist tr td:first-child {
 
 table.courselist tr th:nth-child(4),
 table.courselist tr td:nth-child(4) {
-  width: 55px !important;
+  width: 70px !important;
 }
 
 /* ============================================
@@ -109,13 +99,7 @@ table.courselist tr td {
   font-weight: 500;
   text-decoration: none !important;
   cursor: default;
-  transition: transform var(--emnehjelper-transition), box-shadow var(--emnehjelper-transition);
   box-shadow: var(--emnehjelper-shadow);
-}
-
-.emnehjelper-pill:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Focus styles for accessibility */
@@ -195,7 +179,7 @@ table.courselist tr td {
   );
   background-attachment: fixed;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
 
 .emnehjelper-warning-indicator {
@@ -207,7 +191,7 @@ table.courselist tr td {
   font-size: 16px;
   line-height: 18px;
   text-align: center;
-  z-index: 10;
+  z-index: 0;
   cursor: help;
   background: #fef3c7;
   border: 1px solid #f59e0b;
