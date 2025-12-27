@@ -501,7 +501,7 @@
   background: white;
   border: 1px solid rgba(9, 0, 137, 0.12);
   border-radius: 10px;
-  text-decoration: none;
+  text-decoration: none !important;
   transition: all 0.2s ease;
 }
 
@@ -527,12 +527,22 @@
   font-size: 13px;
   font-weight: 600;
   color: #333;
+  transition: text-decoration 0.2s ease;
+}
+
+.service-btn:hover .service-btn-name {
+  text-decoration: underline;
 }
 
 .service-btn-desc {
   font-size: 11px;
   color: #888;
   margin-top: 1px;
+  transition: text-decoration 0.2s ease;
+}
+
+.service-btn:hover .service-btn-desc {
+  text-decoration: underline;
 }
 
 .service-btn-arrow {
@@ -540,6 +550,7 @@
   font-size: 18px;
   opacity: 0.5;
   transition: opacity 0.2s ease, transform 0.2s ease;
+  text-decoration: none;
 }
 
 .service-btn:hover .service-btn-arrow {
