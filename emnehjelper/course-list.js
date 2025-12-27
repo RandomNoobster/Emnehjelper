@@ -10,32 +10,32 @@ const TAG_COLORS = {
 
 const DESCRIPTIONS = {
   DIFFICULTY: [
-    { threshold: 0.5, label: "Svært Lett", color: TAG_COLORS.GREEN },
-    { threshold: 1, label: "Lett", color: TAG_COLORS.LIME },
-    { threshold: 1.5, label: "Vanskelig", color: TAG_COLORS.ORANGE },
-    { threshold: 2, label: "Svært Vanskelig", color: TAG_COLORS.RED },
-    { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
+    { threshold: 0.5, label: "Svært Lett", shortLabel: "Lett", color: TAG_COLORS.GREEN },
+    { threshold: 1, label: "Lett", shortLabel: "Lett", color: TAG_COLORS.LIME },
+    { threshold: 1.5, label: "Vanskelig", shortLabel: "Middels", color: TAG_COLORS.ORANGE },
+    { threshold: 2, label: "Svært Vanskelig", shortLabel: "Hard", color: TAG_COLORS.RED },
+    { threshold: Infinity, label: "Ukjent", shortLabel: "—", color: TAG_COLORS.GRAY },
   ],
   WORKLOAD: [
-    { threshold: 0.5, label: "Ikke Arbeidsomt", color: TAG_COLORS.GREEN },
-    { threshold: 1, label: "Lite Arbeidsomt", color: TAG_COLORS.LIME },
-    { threshold: 1.5, label: "Arbeidsomt", color: TAG_COLORS.ORANGE },
-    { threshold: 2, label: "Svært Arbeidsomt", color: TAG_COLORS.RED },
-    { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
+    { threshold: 0.5, label: "Ikke Arbeidsomt", shortLabel: "Lav", color: TAG_COLORS.GREEN },
+    { threshold: 1, label: "Lite Arbeidsomt", shortLabel: "Lav", color: TAG_COLORS.LIME },
+    { threshold: 1.5, label: "Arbeidsomt", shortLabel: "Middels", color: TAG_COLORS.ORANGE },
+    { threshold: 2, label: "Svært Arbeidsomt", shortLabel: "Høy", color: TAG_COLORS.RED },
+    { threshold: Infinity, label: "Ukjent", shortLabel: "—", color: TAG_COLORS.GRAY },
   ],
   GRADE: [
-    { threshold: 0.5, label: "F", color: TAG_COLORS.RED },
-    { threshold: 1.5, label: "E", color: TAG_COLORS.RED },
-    { threshold: 2.5, label: "D", color: TAG_COLORS.ORANGE },
-    { threshold: 3.5, label: "C", color: TAG_COLORS.YELLOW },
-    { threshold: 4.5, label: "B", color: TAG_COLORS.LIME },
-    { threshold: 5, label: "A", color: TAG_COLORS.GREEN },
-    { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
+    { threshold: 0.5, label: "F", shortLabel: "F", color: TAG_COLORS.RED },
+    { threshold: 1.5, label: "E", shortLabel: "E", color: TAG_COLORS.RED },
+    { threshold: 2.5, label: "D", shortLabel: "D", color: TAG_COLORS.ORANGE },
+    { threshold: 3.5, label: "C", shortLabel: "C", color: TAG_COLORS.YELLOW },
+    { threshold: 4.5, label: "B", shortLabel: "B", color: TAG_COLORS.LIME },
+    { threshold: 5, label: "A", shortLabel: "A", color: TAG_COLORS.GREEN },
+    { threshold: Infinity, label: "Ukjent", shortLabel: "—", color: TAG_COLORS.GRAY },
   ],
   PASS: [
-    { threshold: 50, label: "Ikke Bestått", color: TAG_COLORS.RED },
-    { threshold: 100, label: "Bestått", color: TAG_COLORS.GREEN },
-    { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
+    { threshold: 50, label: "Ikke Bestått", shortLabel: "Stryk", color: TAG_COLORS.RED },
+    { threshold: 100, label: "Bestått", shortLabel: "Bestått", color: TAG_COLORS.GREEN },
+    { threshold: Infinity, label: "Ukjent", shortLabel: "—", color: TAG_COLORS.GRAY },
   ],
 };
 
@@ -46,6 +46,32 @@ const TOOLTIP_TEXT = {
     "Vektet gjennomsnitt av arbeidsmengdene rapportert av emnr og karakterweb\nSkala: Ikke Arbeidsomt - Lite Arbeidsomt - Arbeidsomt - Svært Arbeidsomt",
   GRADE: "Gjennomsnittlig karakter gjennom årene\nSkala: F - E - D - C - B - A",
   PASS: "Andel studenter som har bestått emnet",
+};
+
+const COLUMN_HEADERS = [
+  { label: "Antall", dataAttr: "reviews", sortType: "number" },
+  { label: "Vanskelighet", dataAttr: "difficulty", sortType: "number" },
+  { label: "Arbeidsmengde", dataAttr: "workload", sortType: "number" },
+  { label: "Snitt", dataAttr: "grade", sortType: "number" },
+  { label: "Lenker", dataAttr: "links", sortType: "none" },
+];
+
+const EXTERNAL_LINKS = {
+  EMNR: {
+    baseUrl: "https://emnr.no/course/",
+    title: "Se på emnr.no",
+    icon: chrome.runtime.getURL("media/emnr.ico"),
+  },
+  KARAKTERWEB: {
+    baseUrl: "https://www.karakterweb.no/ntnu/",
+    title: "Se på karakterweb.no",
+    icon: chrome.runtime.getURL("media/karakterweb.ico"),
+  },
+  KARAKTERER: {
+    baseUrl: "https://karakterer.net/course/",
+    title: "Se på karakterer.net",
+    icon: chrome.runtime.getURL("media/karakterernet.ico"),
+  },
 };
 
 // Function to get the appropriate description for difficulty or workload
@@ -62,10 +88,16 @@ function getColorClass(value, type) {
   return thresholds.find((item) => value <= item.threshold).color;
 }
 
+// Function to get a sortable numeric value (returns -1 for unknown/invalid values)
+function getSortValue(value) {
+  if (value == null || isNaN(value) || value < 0) return -1;
+  return value;
+}
+
 // Function to create a loading animation
 function createLoadingAnimation() {
   const loadingAnimation = document.createElement("div");
-  loadingAnimation.classList.add("loading");
+  loadingAnimation.classList.add("emnehjelper-loading");
   loadingAnimation.innerHTML = `
     <span class="dot"></span>
     <span class="dot"></span>
@@ -73,13 +105,124 @@ function createLoadingAnimation() {
   return loadingAnimation;
 }
 
-// Function to create an abbreviation (abbr) element with a tooltip
-function createAbbrElement(text, colorClass, tooltipText) {
-  const abbr = document.createElement("abbr");
-  abbr.classList.add("tag", colorClass);
-  abbr.title = tooltipText;
-  abbr.textContent = text;
-  return abbr;
+// Function to create a compact pill element
+function createPill(text, colorClass, tooltipText) {
+  const pill = document.createElement("span");
+  pill.classList.add("emnehjelper-pill", colorClass);
+  pill.title = tooltipText;
+  pill.textContent = text;
+  pill.setAttribute("role", "status");
+  pill.setAttribute("aria-label", tooltipText);
+  return pill;
+}
+
+// Function to create an external link icon
+function createExternalLink(emnekode, service) {
+  const link = document.createElement("a");
+  link.href = EXTERNAL_LINKS[service].baseUrl + emnekode;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.title = EXTERNAL_LINKS[service].title;
+  link.classList.add("emnehjelper-link");
+  link.setAttribute("aria-label", EXTERNAL_LINKS[service].title);
+  
+  // Prevent row click from hijacking link clicks
+  link.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+  
+  const img = document.createElement("img");
+  img.src = EXTERNAL_LINKS[service].icon;
+  img.alt = EXTERNAL_LINKS[service].title;
+  img.classList.add("emnehjelper-link-icon");
+  link.appendChild(img);
+  
+  return link;
+}
+
+// Function to create a table cell with content
+function createCell(content) {
+  const cell = document.createElement("td");
+  cell.classList.add("emnehjelper-cell");
+  if (content) {
+    if (Array.isArray(content)) {
+      content.forEach(item => cell.appendChild(item));
+    } else {
+      cell.appendChild(content);
+    }
+  }
+  return cell;
+}
+
+// Function to add column headers to a table if not already present
+function addColumnHeaders(table) {
+  const headerRow = table.querySelector("thead tr, tr:first-child");
+  if (!headerRow || headerRow.querySelector(".emnehjelper-header")) return;
+  
+  COLUMN_HEADERS.forEach((col, index) => {
+    const th = document.createElement("th");
+    th.classList.add("emnehjelper-header");
+    th.textContent = col.label;
+    th.dataset.emnehjelperCol = col.dataAttr;
+    th.dataset.sortType = col.sortType;
+    
+    if (col.sortType !== "none") {
+      th.style.cursor = "pointer";
+      th.addEventListener("click", () => sortTable(table, index, col.sortType));
+    }
+    
+    headerRow.appendChild(th);
+  });
+}
+
+// Function to sort table by emnehjelper column
+function sortTable(table, colIndex, sortType) {
+  const tbody = table.querySelector("tbody") || table;
+  const rows = Array.from(tbody.querySelectorAll("tr.course, tr.courserow"));
+  const headerRow = table.querySelector("thead tr, tr:first-child");
+  const headers = headerRow.querySelectorAll(".emnehjelper-header");
+  const header = headers[colIndex];
+  
+  // Determine sort direction
+  const currentDir = header.dataset.sortDir || "none";
+  const newDir = currentDir === "asc" ? "desc" : "asc";
+  
+  // Reset all header sort indicators
+  headers.forEach(h => {
+    h.dataset.sortDir = "none";
+    h.classList.remove("sort-asc", "sort-desc");
+  });
+  
+  header.dataset.sortDir = newDir;
+  header.classList.add(newDir === "asc" ? "sort-asc" : "sort-desc");
+  
+  // Calculate actual column index (original columns + our custom column index)
+  const originalColCount = headerRow.children.length - COLUMN_HEADERS.length;
+  const actualColIndex = originalColCount + colIndex;
+  
+  rows.sort((a, b) => {
+    const cellA = a.children[actualColIndex];
+    const cellB = b.children[actualColIndex];
+    
+    if (!cellA || !cellB) return 0;
+    
+    let valA = cellA.dataset.sortValue ?? cellA.textContent.trim();
+    let valB = cellB.dataset.sortValue ?? cellB.textContent.trim();
+    
+    if (sortType === "number") {
+      valA = parseFloat(valA) || -Infinity;
+      valB = parseFloat(valB) || -Infinity;
+    }
+    
+    let result = 0;
+    if (valA < valB) result = -1;
+    if (valA > valB) result = 1;
+    
+    return newDir === "asc" ? result : -result;
+  });
+  
+  // Re-append rows in sorted order
+  rows.forEach(row => tbody.appendChild(row));
 }
 
 // Function to add hover logic for course name expansion
@@ -105,6 +248,14 @@ function addCourseNameHoverEffect(courseNameCell) {
         if (!node.querySelectorAll) {
           return;
         }
+        
+        // Add headers to any new tables
+        const tables = node.querySelectorAll ? node.querySelectorAll("table.courselist") : [];
+        tables.forEach(addColumnHeaders);
+        if (node.tagName === "TABLE" && node.classList.contains("courselist")) {
+          addColumnHeaders(node);
+        }
+        
         let rows = node.querySelectorAll("tr.course, tr.courserow");
         if (rows.length == 0 && node.classList.contains("courserow")) {
           rows = [node];
@@ -113,12 +264,24 @@ function addCourseNameHoverEffect(courseNameCell) {
         rows.forEach((row) => {
           const cell = row.querySelector("td");
           const emnekode = row.classList[1] ?? cell.textContent;
-          if (cell.classList.contains("emnehjelper-info")) return;
+          if (row.classList.contains("emnehjelper-processed")) return;
+          row.classList.add("emnehjelper-processed");
+          
           const courseNameCell = row.querySelector("td:nth-child(2) > span") ?? row.querySelector("td.coursecode");
           addCourseNameHoverEffect(courseNameCell);
 
-          const loadingAnimation = createLoadingAnimation();
-          cell.appendChild(loadingAnimation);
+          // Add placeholder cells for loading state
+          const reviewsCell = createCell(createLoadingAnimation());
+          const difficultyCell = createCell();
+          const workloadCell = createCell();
+          const gradeCell = createCell();
+          const linksCell = createCell();
+          
+          row.appendChild(reviewsCell);
+          row.appendChild(difficultyCell);
+          row.appendChild(workloadCell);
+          row.appendChild(gradeCell);
+          row.appendChild(linksCell);
 
           // Fetch data for each row immediately and update the DOM
           chrome.runtime
@@ -132,15 +295,21 @@ function addCourseNameHoverEffect(courseNameCell) {
                 response.karakterwebData
               );
 
+              // Clear loading animation
+              reviewsCell.innerHTML = "";
+
               if (!mergedData) {
-                if (loadingAnimation) loadingAnimation.remove();
+                // Show error state
+                reviewsCell.textContent = "—";
+                difficultyCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Ingen data tilgjengelig"));
+                workloadCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Ingen data tilgjengelig"));
+                gradeCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Ingen data tilgjengelig"));
                 return;
               }
 
               const {
                 average_difficulty,
                 average_workload,
-                average_grade_letter,
                 average_grade,
                 emnr_review_count,
                 karakterweb_review_count,
@@ -149,75 +318,95 @@ function addCourseNameHoverEffect(courseNameCell) {
                 pass_rate,
               } = mergedData;
 
-              if (loadingAnimation) loadingAnimation.remove();
-
               // Check for API failures and show warning if needed
               const hasEmnrData = response.emnrData !== null;
               const hasKarakterweb = response.karakterwebData !== null;
               
-              if (!hasEmnrData || !hasKarakterweb) {
-                const failedAPIs = [];
-                if (!hasEmnrData) failedAPIs.push('emnr');
-                if (!hasKarakterweb) failedAPIs.push('karakterweb');
-                
-                const warningSpan = document.createElement('abbr');
-                warningSpan.className = 'warning-emoji';
-                warningSpan.textContent = '\u26a0\ufe0f';
-                warningSpan.title = `Advarsel: Data fra ${failedAPIs.join(' og ')} kunne ikke hentes. Viser kun tilgjengelig data.`;
-                cell.appendChild(warningSpan);
-              }
-
-              // Create and append review abbr element
-              const reviewAbbr = createAbbrElement(
-                `${review_count}`,
-                TAG_COLORS.GRAY,
-                `Antall anmeldelser (${emnr_review_count} fra emnr og ${karakterweb_review_count} fra karakterweb)`
-              );
-              cell.appendChild(reviewAbbr);
-
-              // Create and append difficulty abbr element
-              const difficultyAbbr = createAbbrElement(
+              // Create difficulty pill
+              const difficultyPill = createPill(
                 getDescription(average_difficulty, "difficulty"),
                 getColorClass(average_difficulty, "difficulty"),
                 TOOLTIP_TEXT.DIFFICULTY
               );
-              cell.appendChild(difficultyAbbr);
+              difficultyCell.appendChild(difficultyPill);
+              difficultyCell.dataset.sortValue = getSortValue(average_difficulty);
+              
+              // Add review count to its own cell
+              const reviewSpan = document.createElement("span");
+              reviewSpan.classList.add("emnehjelper-reviews");
+              reviewSpan.textContent = review_count;
+              reviewSpan.title = `${review_count} anmeldelser totalt\n${emnr_review_count} fra emnr.no\n${karakterweb_review_count} fra karakterweb.no`;
+              reviewsCell.appendChild(reviewSpan);
+              reviewsCell.dataset.sortValue = review_count ?? 0;
 
-              // Create and append workload abbr element
-              const workloadAbbr = createAbbrElement(
+              // Create workload pill
+              const workloadPill = createPill(
                 getDescription(average_workload, "workload"),
                 getColorClass(average_workload, "workload"),
                 TOOLTIP_TEXT.WORKLOAD
               );
-              cell.appendChild(workloadAbbr);
+              workloadCell.appendChild(workloadPill);
+              workloadCell.dataset.sortValue = getSortValue(average_workload);
 
-              // Create and append grade abbr element
-              const gradeAbbr = is_graded
-                ? createAbbrElement(
-                    getDescription(average_grade, "grade"),
-                    getColorClass(average_grade, "grade"),
-                    TOOLTIP_TEXT.GRADE
-                  )
-                : createAbbrElement(
-                    getDescription(pass_rate, "pass"),
-                    getColorClass(pass_rate, "pass"),
-                    TOOLTIP_TEXT.PASS
-                  );
-              cell.appendChild(gradeAbbr);
+              // Create grade/pass pill
+              if (is_graded) {
+                const gradePill = createPill(
+                  getDescription(average_grade, "grade"),
+                  getColorClass(average_grade, "grade"),
+                  TOOLTIP_TEXT.GRADE
+                );
+                gradeCell.appendChild(gradePill);
+                gradeCell.dataset.sortValue = getSortValue(average_grade);
+              } else {
+                const passPill = createPill(
+                  getDescription(pass_rate, "pass"),
+                  getColorClass(pass_rate, "pass"),
+                  TOOLTIP_TEXT.PASS
+                );
+                gradeCell.appendChild(passPill);
+                gradeCell.dataset.sortValue = getSortValue(pass_rate);
+              }
 
-              // Mark the cell as processed
-              cell.classList.add("emnehjelper-info");
+              // Add warning indicator if API failed
+              if (!hasEmnrData || !hasKarakterweb) {
+                const failedAPIs = [];
+                if (!hasEmnrData) failedAPIs.push('emnr.no');
+                if (!hasKarakterweb) failedAPIs.push('karakterweb.no');
+                
+                // Mark row as having warning
+                row.classList.add('emnehjelper-warning-row');
+                
+                // Add floating warning indicator
+                const warningIndicator = document.createElement('div');
+                warningIndicator.className = 'emnehjelper-warning-indicator';
+                warningIndicator.title = `Ufullstendige data: Kunne ikke hente fra ${failedAPIs.join(' og ')}`;
+                reviewsCell.style.position = 'relative';
+                reviewsCell.appendChild(warningIndicator);
+              }
+
+              // Create external links
+              const linksContainer = document.createElement("div");
+              linksContainer.classList.add("emnehjelper-links");
+              linksContainer.appendChild(createExternalLink(emnekode, "EMNR"));
+              linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERWEB"));
+              linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERER"));
+              linksCell.appendChild(linksContainer);
             })
             .catch((error) => {
               console.error(
                 `Error fetching course data for ${emnekode}`,
                 error
               );
-              if (loadingAnimation) loadingAnimation.remove();
+              difficultyCell.innerHTML = "";
+              difficultyCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Feil ved henting av data"));
             });
         });
       });
     });
   });
+  
+  // Initial scan for existing tables
+  document.querySelectorAll("table.courselist").forEach(addColumnHeaders);
+  
   observer.observe(document, { childList: true, subtree: true });
 })();

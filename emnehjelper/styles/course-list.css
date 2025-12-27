@@ -1,78 +1,301 @@
-/* Base style for all tags */
-.tag {
-  display: inline;
-  white-space: nowrap;
-  padding: 0px 5px;
-  margin: 5px;
-  border-radius: 20px;
+/* ============================================
+   Emnehjelper - Modern Course List Styles
+   ============================================ */
+
+/* CSS Custom Properties for theming */
+:root {
+  --emnehjelper-green: #22c55e;
+  --emnehjelper-lime: #84cc16;
+  --emnehjelper-yellow: #eab308;
+  --emnehjelper-orange: #f97316;
+  --emnehjelper-red: #ef4444;
+  --emnehjelper-gray: #6b7280;
+  --emnehjelper-text-light: #ffffff;
+  --emnehjelper-text-dark: #1f2937;
+  --emnehjelper-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --emnehjelper-transition: 150ms ease;
+}
+
+/* ============================================
+   Column Headers (inherit website defaults)
+   ============================================ */
+.emnehjelper-header {
+  white-space: nowrap !important;
+  text-align: center !important;
+}
+
+/* Sort indicators */
+.emnehjelper-header[data-sort-type]:not([data-sort-type="none"]):hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.emnehjelper-header.sort-asc::after {
+  content: " ▲";
+  font-size: 10px;
+}
+
+.emnehjelper-header.sort-desc::after {
+  content: " ▼";
+  font-size: 10px;
+}
+
+/* Column width variations - order: Antall, Vanskelighet, Arbeidsmengde, Snitt, Lenker */
+.emnehjelper-header:nth-last-child(5) { /* Antall */
+  width: 60px !important;
+}
+
+.emnehjelper-header:nth-last-child(4) { /* Vanskelighet */
+  width: 110px !important;
+}
+
+.emnehjelper-header:nth-last-child(3) { /* Arbeidsmengde */
+  width: 140px !important;
+}
+
+.emnehjelper-header:nth-last-child(2) { /* Snitt */
+  width: 70px !important;
+}
+
+.emnehjelper-header:nth-last-child(1) { /* Lenker */
+  width: 90px !important;
+}
+
+/* Reduce width of Kode (first) and Status columns */
+table.courselist tr th:first-child,
+table.courselist tr td:first-child {
+  width: 80px !important;
+  max-width: 90px !important;
+}
+
+table.courselist tr th:nth-child(4),
+table.courselist tr td:nth-child(4) {
+  width: 55px !important;
+}
+
+/* ============================================
+   Table Cells
+   ============================================ */
+.emnehjelper-cell {
+  text-align: center !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+}
+
+/* Cell width variations to match headers */
+.emnehjelper-cell:nth-last-child(5) { width: 60px !important; }
+.emnehjelper-cell:nth-last-child(4) { width: 110px !important; }
+.emnehjelper-cell:nth-last-child(3) { width: 140px !important; }
+.emnehjelper-cell:nth-last-child(2) { width: 70px !important; }
+.emnehjelper-cell:nth-last-child(1) { width: 90px !important; }
+
+/* ============================================
+   Modern Pill Styles
+   ============================================ */
+.emnehjelper-pill {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
-  color: #ffffff;
   text-decoration: none !important;
+  cursor: default;
+  transition: transform var(--emnehjelper-transition), box-shadow var(--emnehjelper-transition);
+  box-shadow: var(--emnehjelper-shadow);
 }
 
-/* Red tag */
-.red {
-  background-color: #dc3545; /* Red */
-  color: #ffffff; /* White text */
+.emnehjelper-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Orange tag (between red and green, closer to red) */
-.orange {
-  background-color: #ff9933; /* Orange */
-  color: #000000; /* White text */
+/* Focus styles for accessibility */
+.emnehjelper-pill:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
-.yellow {
-  background-color: #ffee07; /* Yellow */
-  color: #000000; /* Black text */
+/* Color variants */
+.emnehjelper-pill.green {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: var(--emnehjelper-text-light);
 }
 
-/* Lime tag (between red and green, closer to green) */
-.lime {
-  background-color: #a3dc39; /* Lime */
-  color: #000000; /* Black text */
+.emnehjelper-pill.lime {
+  background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
+  color: var(--emnehjelper-text-dark);
 }
 
-/* Green tag */
-.green {
-  background-color: #28a745; /* Green */
-  color: #ffffff; /* White text */
+.emnehjelper-pill.yellow {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: var(--emnehjelper-text-dark);
 }
 
-.gray {
-  background-color: #6c757d; /* Gray */
-  color: #ffffff; /* White text */
+.emnehjelper-pill.orange {
+  background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+  color: var(--emnehjelper-text-light);
 }
 
-/* Warning tag for API errors */
-.warning {
-  background-color: #ffc107; /* Warning yellow */
-  color: #000000; /* Black text */
-  font-size: 16px;
+.emnehjelper-pill.red {
+  background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+  color: var(--emnehjelper-text-light);
+}
+
+.emnehjelper-pill.gray {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  color: var(--emnehjelper-text-light);
+}
+
+/* ============================================
+   Review Count
+   ============================================ */
+.emnehjelper-reviews {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4b5563;
   cursor: help;
 }
 
-/* Warning emoji for API errors (no pill) */
-.warning-emoji {
-  cursor: help;
+.emnehjelper-reviews-detail {
+  font-size: 11px;
+  font-weight: 400;
+  color: #9ca3af;
+}
+
+/* ============================================
+   Warning Indicator
+   ============================================ */
+.emnehjelper-warning-row .emnehjelper-cell {
+  position: relative;
+}
+
+/* Striped overlay - exclude links column (last child) */
+.emnehjelper-warning-row .emnehjelper-cell:not(:nth-last-child(1))::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 5px,
+    rgba(251, 146, 60, 0.18) 5px,
+    rgba(251, 146, 60, 0.18) 10px
+  );
+  background-attachment: fixed;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.emnehjelper-warning-indicator {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
   font-size: 16px;
-  margin: 0 5px;
+  line-height: 18px;
+  text-align: center;
+  z-index: 10;
+  cursor: help;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 4px;
+  color: #d97706;
+  font-weight: bold;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.emnehjelper-warning-indicator::before {
+  content: '!';
+}
+
+/* ============================================
+   External Links
+   ============================================ */
+.emnehjelper-links {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.emnehjelper-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
   text-decoration: none !important;
+  transition: all var(--emnehjelper-transition);
 }
 
-table.courselist tr th:first-child {
-  width: 400px;
+.emnehjelper-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.8;
 }
 
-table.courselist tr td:nth-child(2) {
-  .expanded {
-    overflow: visible;
-    white-space: normal;
-    height: auto;
+.emnehjelper-link:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.emnehjelper-link-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+/* ============================================
+   Loading Animation
+   ============================================ */
+.emnehjelper-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.emnehjelper-loading .dot {
+  width: 5px;
+  height: 5px;
+  background: #9ca3af;
+  border-radius: 50%;
+  animation: emnehjelper-bounce 0.5s infinite alternate;
+}
+
+.emnehjelper-loading .dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.emnehjelper-loading .dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes emnehjelper-bounce {
+  from {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateY(-5px);
+    opacity: 1;
   }
 }
 
+/* ============================================
+   Course Name Hover Effect
+   ============================================ */
+table.courselist tr td:nth-child(2) .expanded {
+  overflow: visible;
+  white-space: normal;
+  height: auto;
+}
+
+/* ============================================
+   Layout Adjustments
+   ============================================ */
 .plannerWrapper {
   padding-right: 0px !important;
 }
@@ -82,44 +305,78 @@ table.courselist tr td:nth-child(2) {
   display: none;
 }
 
+/* Ensure table doesn't overflow */
+table.courselist {
+  table-layout: auto;
+}
+
+/* ============================================
+   Responsive Styles
+   ============================================ */
+@media screen and (max-width: 1200px) {
+  .emnehjelper-header:nth-last-child(5),
+  .emnehjelper-cell:nth-last-child(5) {
+    display: none !important;
+  }
+}
+
 @media screen and (max-width: 991px) {
   table.courselist tr th:first-child {
     width: auto;
   }
-  .tag {
+  
+  .emnehjelper-pill {
     display: inline-block;
   }
 }
 
-/* Loading animation with bouncing dots */
-.loading {
-  display: inline-block;
-  margin-left: 20px;
-}
-
-.dot {
-  height: 5px;
-  width: 5px;
-  margin: 0 3px;
-  background-color: #333;
-  border-radius: 50%;
-  display: inline-block;
-  animation: bounce 0.6s infinite alternate;
-}
-
-.dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes bounce {
-  from {
-    transform: translateY(0);
+@media screen and (max-width: 768px) {
+  .emnehjelper-header:nth-last-child(1),
+  .emnehjelper-cell:nth-last-child(1) {
+    display: none !important;
   }
-  to {
-    transform: translateY(-10px);
+}
+
+/* ============================================
+   High Contrast Mode Support
+   ============================================ */
+@media (prefers-contrast: high) {
+  .emnehjelper-pill {
+    border: 2px solid currentColor;
+  }
+  
+  .emnehjelper-link {
+    border: 1px solid #374151;
+  }
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .emnehjelper-pill,
+  .emnehjelper-link,
+  .emnehjelper-loading .dot {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ============================================
+   Dark Mode Support (if NTNU implements it)
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --emnehjelper-text-dark: #f9fafb;
+  }
+  
+  .emnehjelper-badge {
+    background: #374151;
+    color: #d1d5db;
+  }
+  
+  .emnehjelper-pill.lime,
+  .emnehjelper-pill.yellow {
+    color: #1f2937;
   }
 }
