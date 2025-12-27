@@ -42,7 +42,7 @@ h1 {
    ============================================ */
 .container > p {
   font-size: 13px;
-  color: #555;
+  color: #444;
   line-height: 1.5;
   margin: 0;
   padding: 14px 16px 8px;
@@ -115,7 +115,8 @@ h1 {
 
 .feedback-buttons {
   display: flex;
-  gap: 8px;
+  flex-direction: row;
+  gap: 6px;
 }
 
 .feedback-btn {
@@ -123,9 +124,10 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 10px 8px;
-  border-radius: 10px;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border-radius: 8px;
   text-decoration: none;
   font-size: 11px;
   font-weight: 600;
@@ -142,10 +144,32 @@ h1 {
 }
 
 .feedback-icon {
-  font-size: 20px;
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
 .feedback-btn span:last-child {
   text-align: center;
   line-height: 1.2;
+  white-space: nowrap;
 }
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 16px;
+  background: transparent;
+}
+
+.version {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  color: #444;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
