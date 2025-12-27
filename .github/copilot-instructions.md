@@ -109,6 +109,10 @@ Requires `host_permissions` in `manifest.json`. No npm packages or bundlers used
 
 ## Coding Standards
 
+### Magic Numbers
+- Define all thresholds and constants at the top of files or in `utils.js` (e.g., `WORKLOAD_LABELS`, `DIFFICULTY_LABELS`, `URL_REGEX`)
+- Use enums/objects for related constants (e.g., `TAG_COLORS`, `DESCRIPTIONS`)
+
 ### Modularization
 - Keep functions small and focused on a single responsibility
 - Extract reusable logic into helper functions in `utils.js`

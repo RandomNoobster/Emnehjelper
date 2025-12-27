@@ -14,7 +14,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       
       // Return cached result if valid
       if (cachedResult && (Date.now() - cachedResult.timestamp < VALIDATION_CACHE_TTL)) {
-        console.log(`[Link Validation] ${url} - Cached: ${cachedResult.isValid}`);
         sendResponse({ isValid: cachedResult.isValid });
         return;
       }
@@ -39,9 +38,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               // Check if redirected to base karakterweb page (means course doesn't exist)
               if (isValid && response.url === "https://www.karakterweb.no/ntnu") {
                 isValid = false;
-                console.log(`[Link Validation] ${url} - Redirected to base page - Invalid`);
-              } else {
-                console.log(`[Link Validation] ${url} - Status: ${response.status} - Valid: ${isValid}`);
               }
               
               // Cache the result - fetch current cache first to avoid overwriting
@@ -55,7 +51,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
             .catch((error) => {
               // Network/CORS errors - mark as invalid
-              console.error(`[Link Validation] ${url} - Error:`, error.message);
               resolve({ isValid: false });
             })
             .finally(() => {
@@ -126,12 +121,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             Promise.allSettled([
               fetchWithRetry(`https://api.emnr.no/course/${message.emnekode}/`),
               fetchWithRetry(
-                `https://www.karakterweb.no/api/evals?institute=NTNU&courseCode=${message.emnekode}`
+                `https://www.karakterweb.no/api/fetch?institute=NTNU&courseCode=${message.emnekode}`
               ),
             ])
               .then(([emnrResult, karakterwebResult]) => {
                 const emnrResponse = emnrResult.status === "fulfilled" ? emnrResult.value : null;
-                const karakterwebResponse = karakterwebResult.status === "fulfilled" ? karakterwebResult.value : null;
+                const karakterwebRaw = karakterwebResult.status === "fulfilled" ? karakterwebResult.value : null;
+
+                // Process karakterweb response to extract both evaluations and grades
+                const karakterwebResponse = karakterwebRaw ? {
+                  evaluations: karakterwebRaw.evaluations || [],
+                  grades: karakterwebRaw.grades || { data: [] }
+                } : null;
 
                 // Log any failures
                 if (emnrResult.status === "rejected") {

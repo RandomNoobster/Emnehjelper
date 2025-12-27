@@ -33,7 +33,7 @@ const DESCRIPTIONS = {
     { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
   ],
   PASS: [
-    { threshold: 50, label: "Ikke Bestått", color: TAG_COLORS.RED },
+    { threshold: 50, label: "Stryk", color: TAG_COLORS.RED },
     { threshold: 100, label: "Bestått", color: TAG_COLORS.GREEN },
     { threshold: Infinity, label: "Ukjent", color: TAG_COLORS.GRAY },
   ],
@@ -43,7 +43,7 @@ const COLUMN_HEADERS = [
   { label: "Antall", dataAttr: "reviews", sortType: "number", tooltip: "Antall studentvurderinger fra emnr.no og karakterweb.no" },
   { label: "Vanskelighet", dataAttr: "difficulty", sortType: "number", tooltip: "Vektet gjennomsnitt av vanskelighetsgradene rapportert av emnr og karakterweb\nSkala: Svært Lett - Lett - Vanskelig - Svært Vanskelig" },
   { label: "Arbeidsmengde", dataAttr: "workload", sortType: "number", tooltip: "Vektet gjennomsnitt av arbeidsmengdene rapportert av emnr og karakterweb\nSkala: Ikke Arbeidsomt - Lite Arbeidsomt - Arbeidsomt - Svært Arbeidsomt" },
-  { label: "Snitt", dataAttr: "grade", sortType: "number", tooltip: "Gjennomsnittlig karakter gjennom årene" },
+  { label: "Snitt", dataAttr: "grade", sortType: "number", tooltip: "Gjennomsnittskarakter basert på siste 3 år eller siste eksamen (avhengig av om skala har endret seg)" },
   { label: "Lenker", dataAttr: "links", sortType: "none", tooltip: "" },
 ];
 

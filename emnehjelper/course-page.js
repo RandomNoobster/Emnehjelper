@@ -61,7 +61,7 @@ const GRADE_LABELS = {
 };
 
 const PASS_FAIL_LABELS = {
-  [PassLevels.IKKE_BESTÅTT]: "Ikke Bestått",
+  [PassLevels.IKKE_BESTÅTT]: "Stryk",
   [PassLevels.BESTÅTT]: "Bestått",
 };
 
@@ -82,7 +82,7 @@ async function fetchCourseData(emnekode) {
       karakterwebData: response.karakterwebData,
     };
   } catch (error) {
-    console.error("Error fetching course data:", error);
+    // Error fetching course data
   }
 }
 
@@ -202,10 +202,22 @@ function makePopUp(data, emnekode, response) {
   reviewsSection.appendChild(reviewsBreakdown);
   content.appendChild(reviewsSection);
 
-  // === DISCLAIMER ===
+  // === DATA SOURCE DISCLAIMER ===
   const disclaimer = document.createElement("div");
   disclaimer.className = "disclaimer";
-  disclaimer.textContent = "Statistikken er sammenslått fra emnr og karakterweb:";
+  
+  // Show data source and time period for grade/pass rate
+  let sourceText;
+  if (data.grade_data_source === "karakterweb") {
+    const timePeriod = data.time_period_label || "siste 3 år";
+    sourceText = `Karakterstatistikk er fra karakterweb (${timePeriod}), annen statistikk sammenslått fra emnr og karakterweb`;
+  } else if (data.grade_data_source === "emnr") {
+    sourceText = "Karakterstatistikk er fra emnr (karakterweb har ingen data), annen statistikk sammenslått fra emnr og karakterweb";
+  } else {
+    sourceText = "Statistikken er sammenslått fra emnr og karakterweb";
+  }
+  
+  disclaimer.textContent = sourceText;
   content.appendChild(disclaimer);
 
   // === SLIDERS SECTION ===
@@ -219,7 +231,8 @@ function makePopUp(data, emnekode, response) {
     WORKLOAD_LABELS,
     WorkloadLevels.LOW,
     WorkloadLevels.HIGH,
-    ColorScheme.LOW_IS_GOOD
+    ColorScheme.LOW_IS_GOOD,
+    data.time_period_label
   );
   
   addModernSlider(
@@ -229,7 +242,8 @@ function makePopUp(data, emnekode, response) {
     DIFFICULTY_LABELS,
     DifficultyLevels.EASY,
     DifficultyLevels.HARD,
-    ColorScheme.LOW_IS_GOOD
+    ColorScheme.LOW_IS_GOOD,
+    data.time_period_label
   );
   
   if (!data.is_graded) {
@@ -240,7 +254,8 @@ function makePopUp(data, emnekode, response) {
       PASS_FAIL_LABELS,
       PassLevels.IKKE_BESTÅTT,
       PassLevels.BESTÅTT,
-      ColorScheme.HIGH_IS_GOOD
+      ColorScheme.HIGH_IS_GOOD,
+      data.time_period_label
     );
   } else {
     addModernSlider(
@@ -250,11 +265,14 @@ function makePopUp(data, emnekode, response) {
       GRADE_LABELS,
       Grades.F,
       Grades.A,
-      ColorScheme.HIGH_IS_GOOD
+      ColorScheme.HIGH_IS_GOOD,
+      data.time_period_label
     );
   }
   
   content.appendChild(slidersSection);
+
+  // Historisk statistikk section removed - time period info now shown in tooltips/disclaimer
 
   // === SERVICE LINKS ===
   const servicesSection = document.createElement("div");
@@ -424,7 +442,6 @@ async function validateLink(url) {
     });
     return response.isValid;
   } catch (error) {
-    console.error("Error validating link:", error);
     return true; // Assume valid if validation fails
   }
 }
@@ -483,7 +500,7 @@ function createServiceButton(href, logoUrl, name, description) {
 }
 
 // Modern slider with proper structure
-function addModernSlider(parent, label, value, scaleLabels, min, max, colorScheme) {
+function addModernSlider(parent, label, value, scaleLabels, min, max, colorScheme, timePeriodLabel) {
   const group = document.createElement("div");
   group.className = "slider-group";
   
@@ -515,7 +532,8 @@ function addModernSlider(parent, label, value, scaleLabels, min, max, colorSchem
   tooltipScale.className = "tooltip-scale";
   
   if (scaleLabels === PASS_FAIL_LABELS) {
-    tooltipTitle.textContent = "Skala for beståttprosent";
+    const periodText = timePeriodLabel || "siste 3 år";
+    tooltipTitle.textContent = `Beståttprosent (${periodText})`;
     const items = [
       { value: "0%", label: "Ingen" },
       { value: "50%", label: "Halvparten" },
@@ -528,7 +546,8 @@ function addModernSlider(parent, label, value, scaleLabels, min, max, colorSchem
       tooltipScale.appendChild(scaleItem);
     });
   } else if (scaleLabels === GRADE_LABELS) {
-    tooltipTitle.textContent = "Karakterskala";
+    const periodText = timePeriodLabel || "siste 3 år";
+    tooltipTitle.textContent = `Snittkarakter (${periodText})`;
     const grades = ["F", "E", "D", "C", "B", "A"];
     grades.forEach((grade, i) => {
       const scaleItem = document.createElement("div");
@@ -537,7 +556,7 @@ function addModernSlider(parent, label, value, scaleLabels, min, max, colorSchem
       tooltipScale.appendChild(scaleItem);
     });
   } else if (label === "Vanskelighetsgrad") {
-    tooltipTitle.textContent = "Skala for vanskelighetsgrad";
+    tooltipTitle.textContent = "Vanskelighetsgrad";
     const levels = [
       { value: "Lav", num: "0" },
       { value: "Middels", num: "1" },
@@ -550,7 +569,7 @@ function addModernSlider(parent, label, value, scaleLabels, min, max, colorSchem
       tooltipScale.appendChild(scaleItem);
     });
   } else {
-    tooltipTitle.textContent = "Skala for arbeidsmengde";
+    tooltipTitle.textContent = "Arbeidsmengde";
     const levels = [
       { value: "Lav", num: "0" },
       { value: "Middels", num: "1" },
@@ -689,7 +708,6 @@ function makePopupDraggable(popup, onBubbleClick) {
   const emnekode = extractEmnekodeFromURL(url);
 
   if (emnekode) {
-    console.debug("Emnekode fra URL:", emnekode);
     const response = await fetchCourseData(emnekode);
     const mergedData = mergeData(response.emnrData, response.karakterwebData);
     if (mergedData) {
