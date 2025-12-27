@@ -68,9 +68,14 @@ const EXTERNAL_LINKS = {
     icon: chrome.runtime.getURL("media/karakterweb.ico"),
   },
   KARAKTERER: {
-    baseUrl: "https://karakterer.net/course/",
+    baseUrl: "https://karakterer.net/courses/",
     title: "Se på karakterer.net",
     icon: chrome.runtime.getURL("media/karakterernet.ico"),
+  },
+  STUDIEKVALITETSPORTALEN: {
+    baseUrl: "https://innsida.ntnu.no/studiekvalitetsportalen/emner/",
+    title: "Se på studiekvalitetsportalen",
+    icon: chrome.runtime.getURL("media/ntnu.ico"),
   },
 };
 
@@ -116,10 +121,25 @@ function createPill(text, colorClass, tooltipText) {
   return pill;
 }
 
+// Function to validate if a link exists
+async function validateLink(url) {
+  try {
+    const response = await chrome.runtime.sendMessage({
+      contentScriptQuery: "validate-link",
+      url: url,
+    });
+    return response.isValid;
+  } catch (error) {
+    console.error("Error validating link:", error);
+    return true; // Assume valid if validation fails
+  }
+}
+
 // Function to create an external link icon
 function createExternalLink(emnekode, service) {
   const link = document.createElement("a");
-  link.href = EXTERNAL_LINKS[service].baseUrl + emnekode;
+  const fullUrl = EXTERNAL_LINKS[service].baseUrl + emnekode;
+  link.href = fullUrl;
   link.target = "_blank";
   link.rel = "noopener noreferrer";
   link.title = EXTERNAL_LINKS[service].title;
@@ -129,6 +149,7 @@ function createExternalLink(emnekode, service) {
   // Prevent row click from hijacking link clicks
   link.addEventListener("click", (e) => {
     e.stopPropagation();
+    // Keep link clickable even if invalid so user can verify
   });
   
   const img = document.createElement("img");
@@ -136,6 +157,25 @@ function createExternalLink(emnekode, service) {
   img.alt = EXTERNAL_LINKS[service].title;
   img.classList.add("emnehjelper-link-icon");
   link.appendChild(img);
+  
+  // Validate all external links asynchronously
+  // Add loading state
+  link.classList.add("emnehjelper-link-loading");
+  const serviceName = service === "STUDIEKVALITETSPORTALEN" ? "studiekvalitetsportalen" : 
+                      service === "EMNR" ? "emnr" :
+                      service === "KARAKTERWEB" ? "karakterweb" : "karakterer.net";
+  link.title = `Sjekker om ${serviceName} har data for emnet...`;
+  
+  validateLink(fullUrl).then(isValid => {
+    link.classList.remove("emnehjelper-link-loading");
+    if (!isValid) {
+      link.classList.add("emnehjelper-link-invalid");
+      link.title = `${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} har ikke data for dette emnet - Klikk for å sjekke`;
+      link.setAttribute("aria-label", `${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} har ikke data for dette emnet`);
+    } else {
+      link.title = EXTERNAL_LINKS[service].title;
+    }
+  });
   
   return link;
 }
@@ -390,6 +430,7 @@ function addCourseNameHoverEffect(courseNameCell) {
               linksContainer.appendChild(createExternalLink(emnekode, "EMNR"));
               linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERWEB"));
               linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERER"));
+              linksContainer.appendChild(createExternalLink(emnekode, "STUDIEKVALITETSPORTALEN"));
               linksCell.appendChild(linksContainer);
             })
             .catch((error) => {

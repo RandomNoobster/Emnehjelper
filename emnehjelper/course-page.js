@@ -4,7 +4,8 @@ const URL_REGEX = /.*\/([A-Za-zÆØÅæøå]{2,5}\d{3,4})/;
 const ENDPOINTS = {
   EMNR: (emnekode) => `https://emnr.no/course/${emnekode}`,
   KARAKTERWEB: (emnekode) => `https://www.karakterweb.no/ntnu/${emnekode}`,
-  KARAKTERNET: (emnekode) => `https://karakterer.net/course/${emnekode}`,
+  KARAKTERNET: (emnekode) => `https://karakterer.net/courses/${emnekode}`,
+  STUDIEKVALITETSPORTALEN: (emnekode) => `https://innsida.ntnu.no/studiekvalitetsportalen/emner/${emnekode}`,
 };
 
 const ColorScheme = {
@@ -264,14 +265,14 @@ function makePopUp(data, emnekode, response) {
     ENDPOINTS.EMNR(emnekode),
     chrome.runtime.getURL("media/emnr.ico"),
     "emnr.no",
-    "Anmeldelser"
+    "Vurderinger"
   ));
   
   servicesGrid.appendChild(createServiceButton(
     ENDPOINTS.KARAKTERWEB(emnekode),
     chrome.runtime.getURL("media/karakterweb.ico"),
     "Karakterweb",
-    "Karakterfordeling, historikk og anmeldelser"
+    "Karakterfordeling, historikk og vurderinger"
   ));
   
   servicesGrid.appendChild(createServiceButton(
@@ -279,6 +280,13 @@ function makePopUp(data, emnekode, response) {
     chrome.runtime.getURL("media/karakterernet.ico"),
     "Karakterer.net",
     "Karakterfordeling og historikk"
+  ));
+  
+  servicesGrid.appendChild(createServiceButton(
+    ENDPOINTS.STUDIEKVALITETSPORTALEN(emnekode),
+    chrome.runtime.getURL("media/ntnu.ico"),
+    "Studiekvalitetsportalen",
+    "Kvalitetsvurderinger og referansegrupper"
   ));
   
   servicesSection.appendChild(servicesHeader);
@@ -407,6 +415,20 @@ function createReviewSource(logoUrl, name, count) {
   return source;
 }
 
+// Function to validate if a link exists
+async function validateLink(url) {
+  try {
+    const response = await chrome.runtime.sendMessage({
+      contentScriptQuery: "validate-link",
+      url: url,
+    });
+    return response.isValid;
+  } catch (error) {
+    console.error("Error validating link:", error);
+    return true; // Assume valid if validation fails
+  }
+}
+
 // Create a service button link
 function createServiceButton(href, logoUrl, name, description) {
   const btn = document.createElement("a");
@@ -439,6 +461,23 @@ function createServiceButton(href, logoUrl, name, description) {
   arrow.className = "service-btn-arrow";
   arrow.textContent = "→";
   btn.appendChild(arrow);
+  
+  // Validate all service links asynchronously
+  // Add loading state
+  btn.classList.add("service-btn-loading");
+  const originalDesc = descEl.textContent;
+  descEl.textContent = "Sjekker tilgjengelighet...";
+  
+  validateLink(href).then(isValid => {
+    btn.classList.remove("service-btn-loading");
+    if (!isValid) {
+      btn.classList.add("service-btn-invalid");
+      descEl.textContent = "Data er ikke tilgjengelig for dette emnet";
+      // Keep button clickable so user can verify
+    } else {
+      descEl.textContent = originalDesc;
+    }
+  });
   
   return btn;
 }

@@ -11,7 +11,9 @@
     ],
     "host_permissions": [
         "https://www.karakterweb.no/ntnu/*",
-        "https://api.emnr.no/course/*"
+        "https://api.emnr.no/course/*",
+        "https://innsida.ntnu.no/*",
+        "https://karakterer.net/*"
     ],
     "content_scripts": [
         {
@@ -47,7 +49,7 @@
     ],
     "web_accessible_resources": [{
         "matches": ["<all_urls>"],
-        "resources": ["/media/e-h128.png", "/media/emnr.ico", "/media/karakterweb.ico", "/media/karakterernet.ico"]
+        "resources": ["/media/e-h128.png", "/media/emnr.ico", "/media/karakterweb.ico", "/media/karakterernet.ico", "/media/ntnu.ico"]
     }],
     "action": {
         "default_title": "Hei! Klar for å utforske NTNU-emner? 🎓✨",

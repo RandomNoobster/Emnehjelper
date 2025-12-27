@@ -1,6 +1,70 @@
 const callsToEmnekode = {}; // Tracks ongoing calls
+const linkValidationQueue = {}; // Tracks link validation to avoid rate limiting
+const VALIDATION_CACHE_KEY = 'link-validation-cache';
+const VALIDATION_CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.contentScriptQuery === "validate-link") {
+    const url = message.url;
+    
+    // Check cache first
+    chrome.storage.local.get(VALIDATION_CACHE_KEY, (result) => {
+      const cache = result[VALIDATION_CACHE_KEY] || {};
+      const cachedResult = cache[url];
+      
+      // Return cached result if valid
+      if (cachedResult && (Date.now() - cachedResult.timestamp < VALIDATION_CACHE_TTL)) {
+        console.log(`[Link Validation] ${url} - Cached: ${cachedResult.isValid}`);
+        sendResponse({ isValid: cachedResult.isValid });
+        return;
+      }
+      
+      // Check if validation is already in progress for this URL
+      if (linkValidationQueue[url]) {
+        linkValidationQueue[url].then((result) => sendResponse(result));
+        return;
+      }
+      
+      // Start validation with rate limiting
+      const validationPromise = new Promise((resolve) => {
+        // Add delay to avoid rate limiting - stagger requests
+        const delay = 300 + Math.random() * 200; // Random 300-500ms delay
+        setTimeout(() => {
+          fetch(url, { method: "HEAD" })
+            .then((response) => {
+              // Accept 200-299 (success) and 300-399 (redirects) as valid
+              // Mark 400-599 (client/server errors) as invalid
+              const isValid = response.status >= 200 && response.status < 400;
+              console.log(`[Link Validation] ${url} - Status: ${response.status} - Valid: ${isValid}`);
+              
+              // Cache the result - fetch current cache first to avoid overwriting
+              chrome.storage.local.get(VALIDATION_CACHE_KEY, (cacheResult) => {
+                const cache = cacheResult[VALIDATION_CACHE_KEY] || {};
+                cache[url] = { isValid, timestamp: Date.now() };
+                chrome.storage.local.set({ [VALIDATION_CACHE_KEY]: cache });
+              });
+              
+              resolve({ isValid: isValid });
+            })
+            .catch((error) => {
+              // Network/CORS errors - mark as invalid
+              console.error(`[Link Validation] ${url} - Error:`, error.message);
+              resolve({ isValid: false });
+            })
+            .finally(() => {
+              // Clear from queue after 2 seconds
+              setTimeout(() => delete linkValidationQueue[url], 2000);
+            });
+        }, delay);
+      });
+      
+      linkValidationQueue[url] = validationPromise;
+      validationPromise.then((result) => sendResponse(result));
+    });
+    
+    return true; // Keep channel open for async response
+  }
+  
   if (message.contentScriptQuery === "get-karakter-data") {
     const cacheKey = `karakter-data-${message.emnekode}`;
     const cacheTTL = 72 * 60 * 60 * 1000; // 3 days in milliseconds

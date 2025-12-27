@@ -512,6 +512,48 @@
   box-shadow: 0 4px 12px rgba(9, 0, 137, 0.1);
 }
 
+/* Loading service button styling */
+.service-btn-loading {
+  position: relative;
+  opacity: 0.7;
+}
+
+.service-btn-loading .service-btn-logo {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Invalid service button styling */
+.service-btn-invalid {
+  background: #fef3c7 !important;
+  border-color: #f59e0b !important;
+  opacity: 0.9;
+}
+
+.service-btn-invalid:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2) !important;
+  background: #fde68a !important;
+  opacity: 1;
+}
+
+.service-btn-invalid .service-btn-logo {
+  filter: grayscale(50%) brightness(1.1);
+}
+
+.service-btn-invalid .service-btn-desc {
+  color: #d97706 !important;
+  font-weight: 500;
+}
+
+.service-btn-invalid .service-btn-name {
+  color: #92400e !important;
+}
+
 .service-btn-logo {
   width: 24px;
   height: 24px;
