@@ -106,3 +106,43 @@ All user-facing text in Norwegian (Bokmål):
 - `https://www.karakterweb.no/api/evals?institute=NTNU&courseCode={emnekode}`
 
 Requires `host_permissions` in `manifest.json`. No npm packages or bundlers used.
+
+## Coding Standards
+
+### Modularization
+- Keep functions small and focused on a single responsibility
+- Extract reusable logic into helper functions in `utils.js`
+- Group related constants at the top of files (e.g., `ENDPOINTS`, `ColorScheme`, `TAG_COLORS`)
+- Separate concerns: DOM creation, data fetching, and data processing should be in distinct functions
+
+### Naming Conventions
+- **Variables**: Use descriptive camelCase names that indicate purpose (e.g., `popupParent`, `reviewsSection`, `averageWorkload`)
+- **Functions**: Use verb prefixes describing the action (e.g., `createStatCard()`, `fetchCourseData()`, `makePopupDraggable()`)
+- **Constants**: Use UPPER_SNAKE_CASE for true constants (e.g., `URL_REGEX`, `WORKLOAD_LABELS`)
+- **CSS classes**: Use lowercase with hyphens, prefixed with component context (e.g., `popup-header`, `stat-card`, `service-btn`)
+
+### Function Design
+- Prefer pure functions where possible (same input → same output, no side effects)
+- Use factory functions for creating DOM elements (e.g., `createStatCard()`, `createServiceButton()`)
+- Pass dependencies as parameters rather than relying on global scope
+- Document complex functions with a brief comment explaining purpose
+
+### Code Organization Within Files
+```javascript
+// 1. Constants and Enums at top
+// 2. Utility/Helper functions
+// 3. DOM creation functions
+// 4. Event handlers and business logic
+// 5. Main initialization (IIFE at bottom)
+```
+
+## Maintaining These Instructions
+
+> **Important**: When making significant changes to the project architecture, file structure, data flow, or adding new patterns, update this document to reflect those changes. This ensures Copilot and future contributors have accurate context.
+
+Examples of changes that should trigger an update:
+- Adding new content scripts or modifying match patterns
+- Changing the caching strategy or API handling
+- Introducing new UI components or interaction patterns
+- Adding new external dependencies
+- Modifying the build/release process
