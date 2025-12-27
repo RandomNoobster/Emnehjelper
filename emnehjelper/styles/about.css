@@ -1,66 +1,151 @@
+/* ============================================
+   ABOUT PAGE - Modern Minimalistic Design
+   ============================================ */
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f7fc;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(180deg, #f0f2ff 0%, #e8eaff 100%);
   margin: 0;
-  padding: 20px;
+  padding: 0;
   color: #333;
-  width: 20rem;
+  width: 320px;
 }
 
 .container {
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 24px rgba(9, 0, 137, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+h1 {
+  background: linear-gradient(135deg, #090089 0%, #1a0fb3 100%);
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  margin: 0;
+  padding: 16px;
   text-align: center;
 }
 
-h1 {
-  color: #003d99;
-  font-size: 24px;
-  margin-bottom: 10px;
+/* ============================================
+   CONTENT AREA
+   ============================================ */
+.container > p {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+  margin: 0;
+  padding: 14px 16px 8px;
+  text-align: center;
 }
 
-p {
-  font-size: 16px;
-  color: #666;
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+.buttons-section {
+  padding: 8px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .button {
-  background-color: #003d99;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #eff1ff 100%);
+  color: #090089;
+  padding: 12px 14px;
+  border: 1px solid rgba(9, 0, 137, 0.12);
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 16px;
-  margin-top: 20px;
+  font-size: 13px;
+  font-weight: 600;
   text-decoration: none;
   display: flex;
   align-items: center;
-  justify-content: left;
+  gap: 12px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .button:hover {
-  background-color: #002b70;
+  background: linear-gradient(135deg, #090089 0%, #1a0fb3 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 6px 20px rgba(9, 0, 137, 0.3);
+  transform: translateY(-2px);
 }
 
 .button .icon {
-  font-size: 2rem;
-  margin-right: 10px;
+  font-size: 24px;
+  flex-shrink: 0;
+  width: 32px;
+  text-align: center;
 }
 
-.button span {
-  display: block;
+.button span:last-child {
+  flex: 1;
   text-align: left;
+  line-height: 1.3;
 }
 
-.feedback p, .feedback a {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 0px;
+/* ============================================
+   FEEDBACK SECTION
+   ============================================ */
+.feedback {
+  background: linear-gradient(135deg, #090089 0%, #1a0fb3 100%);
+  padding: 14px 16px;
+  border-radius: 0 0 16px 16px;
 }
 
-.feedback a:hover {
-  color: #003d99;
+.feedback-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 10px 0;
+  text-align: center;
+}
+
+.feedback-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.feedback-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.feedback-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.feedback-icon {
+  font-size: 20px;
+}
+
+.feedback-btn span:last-child {
+  text-align: center;
+  line-height: 1.2;
 }
