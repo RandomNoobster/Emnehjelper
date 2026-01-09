@@ -8,6 +8,24 @@ const ENDPOINTS = {
   STUDIEKVALITETSPORTALEN: (emnekode) => `https://innsida.ntnu.no/studiekvalitetsportalen/emner/${emnekode}`,
 };
 
+const POPUP_MINIMIZED_KEY = "popup_minimized";
+
+async function getPopupMinimizedFlag() {
+  try {
+    const stored = await chrome.storage.local.get(POPUP_MINIMIZED_KEY);
+    return stored[POPUP_MINIMIZED_KEY] ?? false;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function setPopupMinimizedFlag(isMinimized) {
+  try {
+    await chrome.storage.local.set({ [POPUP_MINIMIZED_KEY]: isMinimized });
+  } catch (error) {
+    // Ignore persistence errors; state will fall back to default
+  }
+}
 const ColorScheme = {
   LOW_IS_GOOD: "low-is-good",
   HIGH_IS_GOOD: "high-is-good",
@@ -86,7 +104,7 @@ async function fetchCourseData(emnekode) {
   }
 }
 
-function makePopUp(data, emnekode, response) {
+function makePopUp(data, emnekode, response, startMinimized = false) {
   const popupParent = document.createElement("div");
   popupParent.className = "popup";
   
@@ -377,6 +395,8 @@ function makePopUp(data, emnekode, response) {
         popupParent.classList.add("minimized");
       }, 300);
     }
+
+    setPopupMinimizedFlag(!showPopup);
   }
 
   // Add draggable functionality (must be after togglePopup is defined)
@@ -384,6 +404,10 @@ function makePopUp(data, emnekode, response) {
 
   // Append to body
   document.body.appendChild(popupParent);
+
+  if (startMinimized) {
+    popupParent.classList.add("minimized");
+  }
 }
 
 // Create a stat card element
@@ -711,7 +735,8 @@ function makePopupDraggable(popup, onBubbleClick) {
     const response = await fetchCourseData(emnekode);
     const mergedData = mergeData(response.emnrData, response.karakterwebData);
     if (mergedData) {
-      makePopUp(mergedData, emnekode, response);
+      const startMinimized = await getPopupMinimizedFlag();
+      makePopUp(mergedData, emnekode, response, startMinimized);
     } else {
       console.error("Failed to merge course data for:", emnekode);
     }
