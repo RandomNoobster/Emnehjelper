@@ -3,7 +3,7 @@ const URL_REGEX = /.*\/([A-Za-zÆØÅæøå]{2,5}\d{3,4})/;
 
 const ENDPOINTS = {
   EMNR: (emnekode) => `https://emnr.no/course/${emnekode}`,
-  KARAKTERWEB: (emnekode) => `https://www.karakterweb.no/ntnu/${emnekode}`,
+  KARAKTERWEB: (emnekode) => karakterwebCourseUrl(emnekode),
   KARAKTERNET: (emnekode) => `https://karakterer.net/courses/${emnekode}`,
   STUDIEKVALITETSPORTALEN: (emnekode) => `https://innsida.ntnu.no/studiekvalitetsportalen/emner/${emnekode}`,
 };

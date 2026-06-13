@@ -1,11 +1,114 @@
+importScripts("config.js");
+
 const callsToEmnekode = {}; // Tracks ongoing calls
 const linkValidationQueue = {}; // Tracks link validation to avoid rate limiting
-const VALIDATION_CACHE_KEY = 'link-validation-cache';
+const VALIDATION_CACHE_KEY = 'link-validation-cache-v2';
 const VALIDATION_CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+
+function normalizeKarakterwebLinkUrl(url) {
+  try {
+    const parsed = new URL(url);
+    if (!parsed.hostname.endsWith("karakterweb.no")) {
+      return url;
+    }
+
+    parsed.hostname = "karakterweb.no";
+    parsed.protocol = "https:";
+
+    const match = parsed.pathname.match(/^\/ntnu\/([^/]+)/i);
+    if (match) {
+      parsed.pathname = `/ntnu/${match[1].toLowerCase()}`;
+    }
+
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+function isKarakterwebInstituteLandingPage(url) {
+  return /^https:\/\/(www\.)?karakterweb\.no\/ntnu\/?$/i.test(url);
+}
+
+function semesterToNorwegian(semester) {
+  if (semester === "spring") return "Vår";
+  if (semester === "autumn") return "Høst";
+  return semester;
+}
+
+function scaleToKarakterskala(scale) {
+  if (scale === "A-F") return "A-F";
+  return "G-H";
+}
+
+function distributionToKarakterfordeling(distribution, scale) {
+  if (!distribution) return {};
+
+  if (scale === "A-F" || distribution.A !== undefined) {
+    return Object.fromEntries(
+      Object.entries(distribution).map(([grade, count]) => [
+        grade,
+        { Alle: count, Menn: 0, Kvinner: 0 },
+      ])
+    );
+  }
+
+  const passed =
+    distribution.passed ??
+    distribution.bestatt ??
+    distribution.Bestått ??
+    distribution.G ??
+    0;
+  const failed =
+    distribution.failed ??
+    distribution.stryk ??
+    distribution["Ikke bestått"] ??
+    distribution.H ??
+    0;
+
+  return {
+    Bestått: { Alle: passed, Menn: 0, Kvinner: 0 },
+    "Ikke bestått": { Alle: failed, Menn: 0, Kvinner: 0 },
+  };
+}
+
+function normalizeKarakterwebResponse(raw) {
+  if (!raw) return null;
+
+  if (raw.grades?.data) {
+    return {
+      evaluations: raw.evaluations || [],
+      grades: raw.grades,
+    };
+  }
+
+  const semesters = raw.grades?.semesters || [];
+  const gradesData = semesters.map((item) => ({
+    Årstall: String(item.year),
+    Semester: semesterToNorwegian(item.semester),
+    Karakterskala: scaleToKarakterskala(item.scale),
+    Karakterfordeling: distributionToKarakterfordeling(
+      item.distribution,
+      item.scale
+    ),
+    Antall_kandidater_totalt: item.candidates ?? 0,
+  }));
+
+  const evaluations = Array.isArray(raw.evaluations)
+    ? raw.evaluations
+    : raw.evaluations?.questions || [];
+
+  return {
+    evaluations,
+    grades: { data: gradesData },
+  };
+}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.contentScriptQuery === "validate-link") {
-    const url = message.url;
+    const url = normalizeKarakterwebLinkUrl(message.url);
     
     // Check cache first
     chrome.storage.local.get(VALIDATION_CACHE_KEY, (result) => {
@@ -35,8 +138,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               // Mark 400-599 (client/server errors) as invalid
               let isValid = response.status >= 200 && response.status < 400;
               
-              // Check if redirected to base karakterweb page (means course doesn't exist)
-              if (isValid && response.url === "https://www.karakterweb.no/ntnu") {
+              // Redirect to institute landing page means course doesn't exist
+              if (isValid && isKarakterwebInstituteLandingPage(response.url)) {
                 isValid = false;
               }
               
@@ -71,13 +174,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const cacheKey = `karakter-data-${message.emnekode}`;
     const cacheTTL = 72 * 60 * 60 * 1000; // 3 days in milliseconds
 
-    // Function to fetch data with retry
-    const fetchWithRetry = (url, retryCount = 1) => {
-      return fetch(url, {
-        headers: {
-          Accept: "application/json",
-        },
-      })
+    const fetchWithRetry = (url, options = {}, retryCount = 1) => {
+      const headers = {
+        Accept: "application/json",
+        ...(options.headers || {}),
+      };
+
+      return fetch(url, { ...options, headers })
         .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -87,16 +190,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .catch((error) => {
           console.error(`Fetch failed: ${url}`, error);
           if (retryCount > 0) {
-            // Wait 0.5 seconds and retry once
             return new Promise((resolve) =>
               setTimeout(
-                () => resolve(fetchWithRetry(url, retryCount - 1)),
+                () => resolve(fetchWithRetry(url, options, retryCount - 1)),
                 500
               )
             );
-          } else {
-            throw new Error("Fetch failed after retrying");
           }
+
+          throw new Error("Fetch failed after retrying");
         });
     };
 
@@ -121,18 +223,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             Promise.allSettled([
               fetchWithRetry(`https://api.emnr.no/course/${message.emnekode}/`),
               fetchWithRetry(
-                `https://www.karakterweb.no/api/fetch?institute=NTNU&courseCode=${message.emnekode}`
+                `${KARAKTERWEB_CACHE_BASE}/${message.emnekode.toLowerCase()}`,
+                {
+                  headers: {
+                    "X-Emnehjelper-Client": KARAKTERWEB_CLIENT_HEADER,
+                  },
+                }
               ),
             ])
               .then(([emnrResult, karakterwebResult]) => {
                 const emnrResponse = emnrResult.status === "fulfilled" ? emnrResult.value : null;
                 const karakterwebRaw = karakterwebResult.status === "fulfilled" ? karakterwebResult.value : null;
-
-                // Process karakterweb response to extract both evaluations and grades
-                const karakterwebResponse = karakterwebRaw ? {
-                  evaluations: karakterwebRaw.evaluations || [],
-                  grades: karakterwebRaw.grades || { data: [] }
-                } : null;
+                const karakterwebResponse = normalizeKarakterwebResponse(karakterwebRaw);
 
                 // Log any failures
                 if (emnrResult.status === "rejected") {
@@ -147,13 +249,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                   karakterwebData: karakterwebResponse,
                 };
 
-                // Only cache if BOTH APIs succeeded (don't cache partial/failed data)
-                if (emnrResponse !== null && karakterwebResponse !== null) {
+                if (emnrResponse !== null || karakterwebResponse !== null) {
                   chrome.storage.local.set({
                     [cacheKey]: { data: responseData, timestamp: Date.now() },
                   });
                 } else {
-                  console.warn(`Not caching partial data for ${message.emnekode}`);
+                  console.warn(`Not caching empty data for ${message.emnekode}`);
                 }
 
                 resolve(responseData);

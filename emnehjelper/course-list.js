@@ -54,7 +54,7 @@ const EXTERNAL_LINKS = {
     icon: chrome.runtime.getURL("media/emnr.ico"),
   },
   KARAKTERWEB: {
-    baseUrl: "https://www.karakterweb.no/ntnu/",
+    baseUrl: `${KARAKTERWEB_PUBLIC_BASE}/`,
     title: "Se på karakterweb.no",
     icon: chrome.runtime.getURL("media/karakterweb.ico"),
   },
@@ -133,7 +133,10 @@ async function validateLink(url) {
 // Function to create an external link icon
 function createExternalLink(emnekode, service) {
   const link = document.createElement("a");
-  const fullUrl = EXTERNAL_LINKS[service].baseUrl + emnekode;
+  const fullUrl =
+    service === "KARAKTERWEB"
+      ? karakterwebCourseUrl(emnekode)
+      : EXTERNAL_LINKS[service].baseUrl + emnekode;
   link.href = fullUrl;
   link.target = "_blank";
   link.rel = "noopener noreferrer";

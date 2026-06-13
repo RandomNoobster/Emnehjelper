@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Emnehjelper",
-    "version": "1.3.1",
+    "version": "1.3.2",
     "description": "Viser statistikk om karakterer, arbeidsmengde og vanskelighetsgrad rett i studieplanen din og på alle emnesidene til NTNU-emner.",
     "background": {
         "service_worker": "service-worker.js"
@@ -10,6 +10,8 @@
         "storage"
     ],
     "host_permissions": [
+        "https://emnehjelper-cache.kriosen03.workers.dev/*",
+        "https://karakterweb.no/ntnu/*",
         "https://www.karakterweb.no/ntnu/*",
         "https://api.emnr.no/course/*",
         "https://innsida.ntnu.no/*",
@@ -38,6 +40,7 @@
                 "https://www.ntnu.edu/studies/courses#"
             ],
             "js": [
+                "config.js",
                 "utils.js",
                 "course-list.js"
             ],

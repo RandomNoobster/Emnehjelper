@@ -6,7 +6,9 @@ Denne utvidelsen forbedrer studieplanene på sidene til NTNU ved å inkludere in
 
 I tillegg til studieplaner, forbedrer denne utvidelsen emnesidene til alle NTNU-emner ved å inkludere statistikk om karakterer, beståttprosent og arbeidsmengde. Det er også lenker til emnet i tjenester som _emnr_, _karakterweb_ og _karakterer.net_ slik at du slipper å søke det opp. 
 
-Statistikken som blir brukt er et vektet gjennomsnitt fra emnr og karakterweb. Dette gjør statistikken mer representativ enn om du manuelt hadde brukt bare én av disse tjenestene. 
+Statistikken som blir brukt er et vektet gjennomsnitt fra emnr og karakterweb. Dette gjør statistikken mer representativ enn om du manuelt hadde brukt bare én av disse tjenestene.
+
+Karakterweb-data hentes via en cachet backend (Cloudflare Worker) slik at utvidelsen ikke treffer Karakterwebs API direkte fra hver bruker.
 
 🎓 Din akademiske reise har nettopp blitt litt enklere ✨
 

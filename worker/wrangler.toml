@@ -1,0 +1,6 @@
+name = "emnehjelper-cache"
+main = "src/index.js"
+compatibility_date = "2026-06-13"
+
+[vars]
+ALLOWED_INSTITUTE = "ntnu"

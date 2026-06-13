@@ -21,15 +21,16 @@ Two main injection contexts, each with dedicated JS/CSS:
 
 ### Data Flow
 ```
-Content Script → service-worker.js → [emnr API + karakterweb API] → Cache (24h TTL) → utils.js:mergeData()
+Content Script → service-worker.js → [emnr API + Karakterweb cache worker] → Cache (72h TTL) → utils.js:mergeData()
 ```
 
 **Key Pattern**: `service-worker.js` handles all API calls with:
 - 72-hour cache in `chrome.storage.local` (key: `karakter-data-{emnekode}`)
-- **Only caches complete data** - partial/failed responses are NOT cached, so failed APIs are retried on next visit
+- **Caches partial success** - if one API fails, the other's data is still cached
 - Deduplication via `callsToEmnekode` object to prevent duplicate requests
 - Fetch retry logic (1 retry with 500ms delay)
 - `Promise.allSettled()` allows partial success - if one API fails, the other's data is still used
+- `normalizeKarakterwebResponse()` adapts Karakterweb v1 API JSON to the legacy shape expected by `mergeData()`
 
 **Data merging** (`utils.js:mergeData()`): Weighted average combining emnr and karakterweb review counts. Note rescaling: karakterweb answers (0-4 scale) → divide by 2 → match emnr (0-2 scale).
 
@@ -103,9 +104,12 @@ All user-facing text in Norwegian (Bokmål):
 
 ## External Dependencies
 - `https://api.emnr.no/course/{emnekode}/`
-- `https://www.karakterweb.no/api/evals?institute=NTNU&courseCode={emnekode}`
+- `emnehjelper/config.js` → cached Karakterweb proxy URL (`KARAKTERWEB_CACHE_BASE`)
+- `https://www.karakterweb.no/ntnu/{emnekode}` (link validation only)
 
-Requires `host_permissions` in `manifest.json`. No npm packages or bundlers used.
+Karakterweb grade/evaluation data is fetched via the Cloudflare Worker in `worker/`. Deploy instructions are in `worker/README.md`.
+
+Requires `host_permissions` in `manifest.json`. No npm packages or bundlers used for the extension itself.
 
 ## Coding Standards
 

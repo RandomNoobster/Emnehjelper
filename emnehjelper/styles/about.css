@@ -15,7 +15,7 @@ body {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-radius: 16px;
+  border-radius: 0 0 16px 16px;
   box-shadow: 
     0 4px 24px rgba(9, 0, 137, 0.12),
     0 1px 3px rgba(0, 0, 0, 0.08);
@@ -47,6 +47,21 @@ h1 {
   margin: 0;
   padding: 14px 16px 8px;
   text-align: center;
+}
+
+.container > p.attribution {
+  font-size: 11px;
+  color: #666;
+  padding: 0 16px 10px;
+}
+
+.container > p.attribution a {
+  color: #090089;
+  text-decoration: none;
+}
+
+.container > p.attribution a:hover {
+  text-decoration: underline;
 }
 
 /* ============================================
