@@ -39,8 +39,11 @@ export default {
 
     const cached = await cache.match(cacheKey);
     if (cached) {
+      console.log(`Cache hit for ${institute}/${courseCode}`);
       return cached;
     }
+
+    console.log(`Cache miss. Fetching ${institute}/${courseCode} from upstream`);
 
     const upstreamUrl = new URL(
       `/v1/courses/${institute}/${courseCode}`,
@@ -54,12 +57,15 @@ export default {
     });
 
     if (!upstream.ok) {
+      console.warn(`Upstream error for ${institute}/${courseCode}: HTTP ${upstream.status}`);
       const body = await upstream.text();
       return new Response(body, {
         status: upstream.status,
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    console.log(`Successfully fetched ${institute}/${courseCode} (HTTP ${upstream.status})`);
 
     const response = new Response(upstream.body, {
       status: 200,
