@@ -106,6 +106,118 @@ function normalizeKarakterwebResponse(raw) {
   };
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function parseRetryAfterHeader(retryAfterHeader) {
+  if (!retryAfterHeader) {
+    return null;
+  }
+
+  const seconds = Number(retryAfterHeader);
+  if (!Number.isNaN(seconds) && seconds >= 0) {
+    return seconds * 1000;
+  }
+
+  const retryAt = Date.parse(retryAfterHeader);
+  if (!Number.isNaN(retryAt)) {
+    return Math.max(0, retryAt - Date.now());
+  }
+
+  return null;
+}
+
+function getRateLimitRetryDelayMs(retryAfterHeader) {
+  const parsed = parseRetryAfterHeader(retryAfterHeader);
+  if (parsed !== null) {
+    return Math.min(parsed, KARAKTERWEB_RATE_LIMIT_WINDOW_MS);
+  }
+
+  return KARAKTERWEB_RATE_LIMIT_WINDOW_MS;
+}
+
+function isRateLimited(status) {
+  return status === 429;
+}
+
+async function fetchWithRetry(url, options = {}, retryCount = 1) {
+  const headers = {
+    Accept: "application/json",
+    ...(options.headers || {}),
+  };
+
+  try {
+    const response = await fetch(url, { ...options, headers });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response.json();
+  } catch (error) {
+    console.error(`Fetch failed: ${url}`, error);
+    if (retryCount > 0) {
+      await sleep(500);
+      return fetchWithRetry(url, options, retryCount - 1);
+    }
+    throw error;
+  }
+}
+
+async function fetchKarakterwebCache(url, options = {}) {
+  const headers = {
+    Accept: "application/json",
+    ...(options.headers || {}),
+  };
+
+  let totalWaitMs = 0;
+
+  for (let attempt = 1; attempt <= RATE_LIMIT_MAX_ATTEMPTS; attempt++) {
+    let response;
+
+    try {
+      response = await fetch(url, { ...options, headers });
+    } catch (error) {
+      console.error(`Karakterweb cache fetch failed: ${url}`, error);
+      if (attempt === RATE_LIMIT_MAX_ATTEMPTS) {
+        throw error;
+      }
+
+      await sleep(500);
+      continue;
+    }
+
+    if (response.ok) {
+      return response.json();
+    }
+
+    if (!isRateLimited(response.status)) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const retryAfterMs = getRateLimitRetryDelayMs(
+      response.headers.get("Retry-After")
+    );
+
+    if (
+      attempt === RATE_LIMIT_MAX_ATTEMPTS ||
+      totalWaitMs + retryAfterMs > RATE_LIMIT_MAX_WAIT_MS
+    ) {
+      throw new Error(
+        `Karakterweb cache rate limited after ${attempt} attempts (HTTP ${response.status})`
+      );
+    }
+
+    console.warn(
+      `Karakterweb cache rate limited for ${url}. Waiting ${retryAfterMs}ms before retry ${attempt + 1}/${RATE_LIMIT_MAX_ATTEMPTS}`
+    );
+
+    totalWaitMs += retryAfterMs;
+    await sleep(retryAfterMs);
+  }
+
+  throw new Error("Karakterweb cache fetch failed after retries");
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.contentScriptQuery === "validate-link") {
     const url = normalizeKarakterwebLinkUrl(message.url);
@@ -174,34 +286,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const cacheKey = `karakter-data-${message.emnekode}`;
     const cacheTTL = 72 * 60 * 60 * 1000; // 3 days in milliseconds
 
-    const fetchWithRetry = (url, options = {}, retryCount = 1) => {
-      const headers = {
-        Accept: "application/json",
-        ...(options.headers || {}),
-      };
-
-      return fetch(url, { ...options, headers })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .catch((error) => {
-          console.error(`Fetch failed: ${url}`, error);
-          if (retryCount > 0) {
-            return new Promise((resolve) =>
-              setTimeout(
-                () => resolve(fetchWithRetry(url, options, retryCount - 1)),
-                500
-              )
-            );
-          }
-
-          throw new Error("Fetch failed after retrying");
-        });
-    };
-
     // Handle ongoing calls
     if (callsToEmnekode[message.emnekode]) {
       // If there's an ongoing call, wait for it to resolve
@@ -222,7 +306,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // Fetch both APIs with individual error handling to allow partial success
             Promise.allSettled([
               fetchWithRetry(`https://api.emnr.no/course/${message.emnekode}/`),
-              fetchWithRetry(
+              fetchKarakterwebCache(
                 `${KARAKTERWEB_CACHE_BASE}/${message.emnekode.toLowerCase()}`,
                 {
                   headers: {
