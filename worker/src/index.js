@@ -1,13 +1,13 @@
 const UPSTREAM = "https://api.karakterweb.no";
 const CACHE_TTL_SECONDS = 60 * 60 * 24 * 7;
+// Courses Karakterweb does not have; shorter, so newly added courses show up within a day
+const NOT_FOUND_CACHE_TTL_SECONDS = 60 * 60 * 24;
 const CLIENT_HEADER = "X-Emnehjelper-Client";
 const CLIENT_TOKEN = "emnehjelper-v1";
 
 // Verified against https://karakterweb.no/api-docs and live upstream responses:
-// 120 req/min, HTTP 429, no Retry-After header.
-const KARAKTERWEB_RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX_ATTEMPTS = 3;
-const RATE_LIMIT_MAX_WAIT_MS = 180_000;
+// 120 req/min, HTTP 429, no Retry-After header. Clients are told to wait one full window.
+const DEFAULT_RETRY_AFTER_SECONDS = 60;
 
 export default {
   async fetch(request, env, ctx) {
@@ -46,7 +46,7 @@ export default {
 
     const cached = await cache.match(cacheKey);
     if (cached) {
-      console.log(`Cache hit for ${courseLabel}`);
+      console.log(`Cache hit for ${courseLabel} (HTTP ${cached.status})`);
       return cached;
     }
 
@@ -65,42 +65,48 @@ export default {
     upstreamUrl.searchParams.set("include", "grades,evaluations");
     upstreamUrl.searchParams.set("semester", "main");
 
-    const upstreamResult = await fetchUpstreamWithRetry(
-      upstreamUrl,
-      env.KARAKTERWEB_API_KEY,
-      courseLabel
-    );
+    const upstream = await fetch(upstreamUrl, {
+      headers: { "X-Client-Key": env.KARAKTERWEB_API_KEY },
+    });
 
-    if (!upstreamResult.ok) {
-      const { response: upstreamError, rateLimited, attempts } = upstreamResult;
-      console.warn(
-        rateLimited
-          ? `Upstream rate limit persisted for ${courseLabel} after ${attempts} attempts`
-          : `Upstream error for ${courseLabel}: HTTP ${upstreamError.status}`
-      );
-
-      const headers = { "Content-Type": "application/json" };
-      if (rateLimited) {
-        // Tell the client how long to back off; it cannot see the upstream headers
-        headers["Retry-After"] =
-          upstreamError.headers.get("Retry-After") ??
-          String(KARAKTERWEB_RATE_LIMIT_WINDOW_MS / 1000);
-      }
-
-      return new Response(upstreamError.body, {
-        status: upstreamError.status,
-        headers,
+    if (upstream.status === 429) {
+      // Do not wait out the limit here. Chrome stops the extension's service worker when a
+      // fetch() response takes over 30 s, so the extension does the waiting and retrying.
+      console.warn(`Upstream rate limited for ${courseLabel}`);
+      return new Response(upstream.body, {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          // The client cannot see the upstream headers, so always tell it how long to back off
+          "Retry-After":
+            upstream.headers.get("Retry-After") ??
+            String(DEFAULT_RETRY_AFTER_SECONDS),
+        },
       });
     }
 
-    const upstream = upstreamResult.response;
-    console.log(`Successfully fetched ${courseLabel} (HTTP ${upstream.status})`);
+    if (!upstream.ok && upstream.status !== 404) {
+      console.warn(`Upstream error for ${courseLabel}: HTTP ${upstream.status}`);
+      return new Response(upstream.body, {
+        status: upstream.status,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
+    const isNotFound = upstream.status === 404;
+    console.log(
+      isNotFound
+        ? `Course ${courseLabel} not found upstream`
+        : `Successfully fetched ${courseLabel} (HTTP ${upstream.status})`
+    );
+
+    // Cache 404s too, so lookups of courses Karakterweb lacks do not spend the shared quota
+    const ttlSeconds = isNotFound ? NOT_FOUND_CACHE_TTL_SECONDS : CACHE_TTL_SECONDS;
     const response = new Response(upstream.body, {
-      status: 200,
+      status: upstream.status,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": `public, max-age=${CACHE_TTL_SECONDS}`,
+        "Cache-Control": `public, max-age=${ttlSeconds}`,
       },
     });
 
@@ -109,81 +115,6 @@ export default {
     return response;
   },
 };
-
-async function fetchUpstreamWithRetry(upstreamUrl, apiKey, label) {
-  let totalWaitMs = 0;
-
-  for (let attempt = 1; attempt <= RATE_LIMIT_MAX_ATTEMPTS; attempt++) {
-    const upstream = await fetch(upstreamUrl, {
-      headers: { "X-Client-Key": apiKey },
-    });
-
-    if (upstream.ok) {
-      return { ok: true, response: upstream, attempts: attempt };
-    }
-
-    if (upstream.status !== 429) {
-      return { ok: false, response: upstream, attempts: attempt };
-    }
-
-    const retryAfterMs = getRateLimitRetryDelayMs(
-      upstream.headers.get("Retry-After")
-    );
-
-    if (
-      attempt === RATE_LIMIT_MAX_ATTEMPTS ||
-      totalWaitMs + retryAfterMs > RATE_LIMIT_MAX_WAIT_MS
-    ) {
-      return {
-        ok: false,
-        rateLimited: true,
-        response: upstream,
-        attempts: attempt,
-      };
-    }
-
-    console.warn(
-      `Upstream rate limited for ${label}: HTTP 429. Waiting ${retryAfterMs}ms before retry ${attempt + 1}/${RATE_LIMIT_MAX_ATTEMPTS}`
-    );
-
-    totalWaitMs += retryAfterMs;
-    await sleep(retryAfterMs);
-  }
-
-  // Unreachable: the last attempt always returns above
-  throw new Error(`Upstream retry loop for ${label} exited without a result`);
-}
-
-function getRateLimitRetryDelayMs(retryAfterHeader) {
-  const parsed = parseRetryAfterHeader(retryAfterHeader);
-  if (parsed !== null) {
-    return Math.min(parsed, KARAKTERWEB_RATE_LIMIT_WINDOW_MS);
-  }
-
-  return KARAKTERWEB_RATE_LIMIT_WINDOW_MS;
-}
-
-function parseRetryAfterHeader(retryAfterHeader) {
-  if (!retryAfterHeader) {
-    return null;
-  }
-
-  const seconds = Number(retryAfterHeader);
-  if (!Number.isNaN(seconds) && seconds >= 0) {
-    return seconds * 1000;
-  }
-
-  const retryAt = Date.parse(retryAfterHeader);
-  if (!Number.isNaN(retryAt)) {
-    return Math.max(0, retryAt - Date.now());
-  }
-
-  return null;
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {

@@ -265,7 +265,10 @@ async function fetchKarakterwebCache(url, options = {}) {
     );
 
     totalWaitMs += retryAfterMs;
-    await sleepKeepingServiceWorkerAlive(retryAfterMs);
+    // Jitter so clients limited at the same moment do not all retry in the same instant
+    await sleepKeepingServiceWorkerAlive(
+      retryAfterMs + Math.random() * RATE_LIMIT_RETRY_JITTER_MS
+    );
   }
 
   throw new Error("Karakterweb cache fetch failed after retries");

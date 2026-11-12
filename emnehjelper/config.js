@@ -13,11 +13,13 @@ const KARAKTERWEB_CLIENT_TOKEN = "emnehjelper-v1";
 const KARAKTERWEB_PUBLIC_BASE = "https://karakterweb.no/ntnu";
 
 // Karakterweb API: 120 req/min, HTTP 429 with body {"error":{"message":"Rate limit exceeded"}}.
-// No Retry-After header is sent today; wait one full minute window before retrying.
+// Upstream sends no Retry-After header today. The cache worker does not wait itself: it returns
+// 429 at once with Retry-After (one full minute by default), and the extension waits and retries.
 // https://karakterweb.no/api-docs
 const KARAKTERWEB_RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_ATTEMPTS = 4;
 const RATE_LIMIT_MAX_WAIT_MS = 240_000;
+const RATE_LIMIT_RETRY_JITTER_MS = 5_000;
 
 function karakterwebCourseUrl(emnekode) {
   return `${KARAKTERWEB_PUBLIC_BASE}/${emnekode.toLowerCase()}`;
