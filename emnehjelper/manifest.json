@@ -21,6 +21,20 @@
         {
             "matches": [
                 "https://www.ntnu.no/studier/emner/*",
+                "https://www.ntnu.edu/studies/courses/*",
+                "https://www.ntnu.no/studier/*",
+                "https://www.ntnu.edu/studies/*",
+                "https://www.ntnu.no/studier/emner#",
+                "https://www.ntnu.edu/studies/courses#"
+            ],
+            "js": [
+                "config.js"
+            ],
+            "run_at": "document_start"
+        },
+        {
+            "matches": [
+                "https://www.ntnu.no/studier/emner/*",
                 "https://www.ntnu.edu/studies/courses/*"
             ],
             "js": [
@@ -40,7 +54,6 @@
                 "https://www.ntnu.edu/studies/courses#"
             ],
             "js": [
-                "config.js",
                 "utils.js",
                 "course-list.js"
             ],

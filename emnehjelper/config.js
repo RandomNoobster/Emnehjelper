@@ -1,9 +1,14 @@
 // Single source of truth for Karakterweb cache worker settings.
 // If you change KARAKTERWEB_CACHE_ORIGIN, also update the matching host_permission in manifest.json.
+// Content scripts get this file from its own document_start entry in manifest.json, so it is
+// evaluated once per page before course-page.js and course-list.js. Do not add it to those
+// entries: their match patterns overlap on course pages, and re-evaluating these consts throws.
 
 const KARAKTERWEB_CACHE_ORIGIN = "https://emnehjelper-cache.kriosen03.workers.dev";
 const KARAKTERWEB_CACHE_BASE = `${KARAKTERWEB_CACHE_ORIGIN}/v1/courses/ntnu`;
-const KARAKTERWEB_CLIENT_HEADER = "emnehjelper-v1";
+// Must match CLIENT_HEADER / CLIENT_TOKEN in worker/src/index.js
+const KARAKTERWEB_CLIENT_HEADER_NAME = "X-Emnehjelper-Client";
+const KARAKTERWEB_CLIENT_TOKEN = "emnehjelper-v1";
 
 const KARAKTERWEB_PUBLIC_BASE = "https://karakterweb.no/ntnu";
 

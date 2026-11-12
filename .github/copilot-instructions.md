@@ -6,7 +6,7 @@ Chrome/Edge extension that enhances NTNU's course pages and study plans by displ
 ## Architecture
 
 ### Content Scripts Structure
-Two main injection contexts, each with dedicated JS/CSS:
+Two main injection contexts, each with dedicated JS/CSS. Shared settings in `config.js` are injected by a separate `document_start` entry covering both contexts (never list it in the other entries: their matches overlap on course pages and its top-level `const`s cannot be evaluated twice):
 
 1. **Course Pages** (`course-page.js`, `course-page.css`)
    - Matches: `https://www.ntnu.{no|edu}/studies/courses/*`
@@ -26,7 +26,7 @@ Content Script → service-worker.js → [emnr API + Karakterweb cache worker] �
 
 **Key Pattern**: `service-worker.js` handles all API calls with:
 - 72-hour cache in `chrome.storage.local` (key: `karakter-data-{emnekode}`)
-- **Caches partial success** - if one API fails, the other's data is still cached
+- **Caches partial success** - if one API fails, the other's data is still cached; when the failure is transient (rate limit, 5xx, network) the entry expires after 15 minutes instead of 72 hours, while a 404 (course not found) keeps the full TTL
 - Deduplication via `callsToEmnekode` object to prevent duplicate requests
 - Fetch retry logic (1 retry with 500ms delay)
 - `Promise.allSettled()` allows partial success - if one API fails, the other's data is still used

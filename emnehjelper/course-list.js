@@ -49,22 +49,22 @@ const COLUMN_HEADERS = [
 
 const EXTERNAL_LINKS = {
   EMNR: {
-    baseUrl: "https://emnr.no/course/",
+    buildUrl: (emnekode) => `https://emnr.no/course/${emnekode}`,
     title: "Se på emnr.no",
     icon: chrome.runtime.getURL("media/emnr.ico"),
   },
   KARAKTERWEB: {
-    baseUrl: `${KARAKTERWEB_PUBLIC_BASE}/`,
+    buildUrl: karakterwebCourseUrl,
     title: "Se på karakterweb.no",
     icon: chrome.runtime.getURL("media/karakterweb.ico"),
   },
   KARAKTERER: {
-    baseUrl: "https://karakterer.net/courses/",
+    buildUrl: (emnekode) => `https://karakterer.net/courses/${emnekode}`,
     title: "Se på karakterer.net",
     icon: chrome.runtime.getURL("media/karakterernet.ico"),
   },
   STUDIEKVALITETSPORTALEN: {
-    baseUrl: "https://innsida.ntnu.no/studiekvalitetsportalen/emner/",
+    buildUrl: (emnekode) => `https://innsida.ntnu.no/studiekvalitetsportalen/emner/${emnekode}`,
     title: "Se på studiekvalitetsportalen",
     icon: chrome.runtime.getURL("media/ntnu.ico"),
   },
@@ -133,10 +133,7 @@ async function validateLink(url) {
 // Function to create an external link icon
 function createExternalLink(emnekode, service) {
   const link = document.createElement("a");
-  const fullUrl =
-    service === "KARAKTERWEB"
-      ? karakterwebCourseUrl(emnekode)
-      : EXTERNAL_LINKS[service].baseUrl + emnekode;
+  const fullUrl = EXTERNAL_LINKS[service].buildUrl(emnekode);
   link.href = fullUrl;
   link.target = "_blank";
   link.rel = "noopener noreferrer";

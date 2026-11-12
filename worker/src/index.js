@@ -10,7 +10,7 @@ const RATE_LIMIT_MAX_ATTEMPTS = 3;
 const RATE_LIMIT_MAX_WAIT_MS = 180_000;
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     if (url.pathname === "/health") {
@@ -32,6 +32,7 @@ export default {
 
     const institute = match[1].toLowerCase();
     const courseCode = match[2].toLowerCase();
+    const courseLabel = `${institute}/${courseCode}`;
 
     if (institute !== (env.ALLOWED_INSTITUTE || "ntnu").toLowerCase()) {
       return json({ error: "institute_not_supported" }, 404);
@@ -45,11 +46,17 @@ export default {
 
     const cached = await cache.match(cacheKey);
     if (cached) {
-      console.log(`Cache hit for ${institute}/${courseCode}`);
+      console.log(`Cache hit for ${courseLabel}`);
       return cached;
     }
 
-    console.log(`Cache miss. Fetching ${institute}/${courseCode} from upstream`);
+    // Without the secret, the upstream call would send the literal string "undefined" as the key
+    if (!env.KARAKTERWEB_API_KEY) {
+      console.error("KARAKTERWEB_API_KEY secret is not configured");
+      return json({ error: "upstream_not_configured" }, 500);
+    }
+
+    console.log(`Cache miss. Fetching ${courseLabel} from upstream`);
 
     const upstreamUrl = new URL(
       `/v1/courses/${institute}/${courseCode}`,
@@ -61,35 +68,33 @@ export default {
     const upstreamResult = await fetchUpstreamWithRetry(
       upstreamUrl,
       env.KARAKTERWEB_API_KEY,
-      `${institute}/${courseCode}`
+      courseLabel
     );
 
     if (!upstreamResult.ok) {
-      if (upstreamResult.rateLimited) {
-        console.warn(
-          `Upstream rate limit persisted for ${institute}/${courseCode} after ${upstreamResult.attempts} attempts`
-        );
-        const body = await upstreamResult.response.text();
-        return new Response(body, {
-          status: 429,
-          headers: { "Content-Type": "application/json" },
-        });
+      const { response: upstreamError, rateLimited, attempts } = upstreamResult;
+      console.warn(
+        rateLimited
+          ? `Upstream rate limit persisted for ${courseLabel} after ${attempts} attempts`
+          : `Upstream error for ${courseLabel}: HTTP ${upstreamError.status}`
+      );
+
+      const headers = { "Content-Type": "application/json" };
+      if (rateLimited) {
+        // Tell the client how long to back off; it cannot see the upstream headers
+        headers["Retry-After"] =
+          upstreamError.headers.get("Retry-After") ??
+          String(KARAKTERWEB_RATE_LIMIT_WINDOW_MS / 1000);
       }
 
-      console.warn(
-        `Upstream error for ${institute}/${courseCode}: HTTP ${upstreamResult.response.status}`
-      );
-      const body = await upstreamResult.response.text();
-      return new Response(body, {
-        status: upstreamResult.response.status,
-        headers: { "Content-Type": "application/json" },
+      return new Response(upstreamError.body, {
+        status: upstreamError.status,
+        headers,
       });
     }
 
     const upstream = upstreamResult.response;
-    console.log(
-      `Successfully fetched ${institute}/${courseCode} (HTTP ${upstream.status})`
-    );
+    console.log(`Successfully fetched ${courseLabel} (HTTP ${upstream.status})`);
 
     const response = new Response(upstream.body, {
       status: 200,
@@ -99,7 +104,8 @@ export default {
       },
     });
 
-    await cache.put(cacheKey, response.clone());
+    // Write the cache in the background so it neither delays nor fails the response
+    ctx.waitUntil(cache.put(cacheKey, response.clone()));
     return response;
   },
 };
@@ -144,15 +150,8 @@ async function fetchUpstreamWithRetry(upstreamUrl, apiKey, label) {
     await sleep(retryAfterMs);
   }
 
-  return {
-    ok: false,
-    rateLimited: true,
-    response: new Response(
-      JSON.stringify({ error: { message: "Rate limit exceeded" } }),
-      { status: 429, headers: { "Content-Type": "application/json" } }
-    ),
-    attempts: RATE_LIMIT_MAX_ATTEMPTS,
-  };
+  // Unreachable: the last attempt always returns above
+  throw new Error(`Upstream retry loop for ${label} exited without a result`);
 }
 
 function getRateLimitRetryDelayMs(retryAfterHeader) {
@@ -186,12 +185,9 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function json(data, status = 200, extraHeaders = {}) {
+function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: {
-      "Content-Type": "application/json",
-      ...extraHeaders,
-    },
+    headers: { "Content-Type": "application/json" },
   });
 }
