@@ -24,12 +24,16 @@
 
 .popup-inner {
   transform-origin: top right;
-  transition: 
+  transition:
     transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.3s ease;
   border-radius: 16px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.92);
+  /* The popup is taller than many laptop viewports: keep the header and let the content scroll */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 20px);
 }
 
 /* Expanding state - animating from bubble to full popup */
@@ -132,6 +136,8 @@
    ============================================ */
 .popup-content {
   padding: 12px 16px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* ============================================
@@ -174,10 +180,6 @@
   border-radius: 10px;
   padding: 8px;
   text-align: center;
-}
-
-.stat-card.full-width {
-  grid-column: 1 / -1;
 }
 
 .stat-value {
@@ -439,6 +441,15 @@
     0 2px 6px rgba(0, 0, 0, 0.2),
     0 0 0 2px rgba(9, 0, 137, 0.3);
   cursor: default;
+}
+
+/* No data: a thumb anywhere on the scale would suggest a value */
+.popup input[type="range"].slider-no-data::-webkit-slider-thumb {
+  visibility: hidden;
+}
+
+.popup input[type="range"].slider-no-data::-moz-range-thumb {
+  visibility: hidden;
 }
 
 .popup .low-is-good {

@@ -151,12 +151,6 @@ table.courselist tr td {
   cursor: help;
 }
 
-.emnehjelper-reviews-detail {
-  font-size: 11px;
-  font-weight: 400;
-  color: #9ca3af;
-}
-
 /* ============================================
    Warning Indicator
    ============================================ */
@@ -444,19 +438,5 @@ table.courselist {
   .emnehjelper-loading .dot {
     animation: none;
     transition: none;
-  }
-}
-
-/* ============================================
-   Dark Mode Support (if NTNU implements it)
-   ============================================ */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --emnehjelper-text-dark: #f9fafb;
-  }
-  
-  .emnehjelper-badge {
-    background: #374151;
-    color: #d1d5db;
   }
 }

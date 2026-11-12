@@ -26,9 +26,9 @@ Content Script → service-worker.js → [emnr API + Karakterweb cache worker] �
 
 **Key Pattern**: `service-worker.js` handles all API calls with:
 - 72-hour cache in `chrome.storage.local` (key: `karakter-data-{emnekode}`)
-- **Caches partial success** - if one API fails, the other's data is still cached; when the failure is transient (rate limit, 5xx, network) the entry expires after 15 minutes instead of 72 hours, while a 404 (course not found) keeps the full TTL
+- **Caches partial success** - if one API fails, the other's data is still cached; when the failure is transient (rate limit, 5xx, network) the entry expires after 15 minutes instead of 72 hours. A 404 (course not found) is a stable answer: it is cached too (24 hours when Karakterweb lacks the course, matching the worker) and flagged in the response (`emnrNotFound` / `karakterwebNotFound`), so content scripts show "no data" rather than a fetch-failure warning
 - Deduplication via `callsToEmnekode` object to prevent duplicate requests
-- Fetch retry logic (1 retry with 500ms delay)
+- Fetch retry logic (1 retry with 500ms delay; 4xx answers other than 408/429 are not retried)
 - `Promise.allSettled()` allows partial success - if one API fails, the other's data is still used
 - `normalizeKarakterwebResponse()` adapts Karakterweb v1 API JSON to the legacy shape expected by `mergeData()`
 

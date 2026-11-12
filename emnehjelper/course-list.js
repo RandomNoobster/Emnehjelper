@@ -49,26 +49,32 @@ const COLUMN_HEADERS = [
 
 const EXTERNAL_LINKS = {
   EMNR: {
+    name: "emnr",
     buildUrl: (emnekode) => `https://emnr.no/course/${emnekode}`,
     title: "Se på emnr.no",
     icon: chrome.runtime.getURL("media/emnr.ico"),
   },
   KARAKTERWEB: {
+    name: "karakterweb",
     buildUrl: karakterwebCourseUrl,
     title: "Se på karakterweb.no",
     icon: chrome.runtime.getURL("media/karakterweb.ico"),
   },
   KARAKTERER: {
+    name: "karakterer.net",
     buildUrl: (emnekode) => `https://karakterer.net/courses/${emnekode}`,
     title: "Se på karakterer.net",
     icon: chrome.runtime.getURL("media/karakterernet.ico"),
   },
   STUDIEKVALITETSPORTALEN: {
+    name: "studiekvalitetsportalen",
     buildUrl: (emnekode) => `https://innsida.ntnu.no/studiekvalitetsportalen/emner/${emnekode}`,
     title: "Se på studiekvalitetsportalen",
     icon: chrome.runtime.getURL("media/ntnu.ico"),
   },
 };
+
+const COURSE_ROW_SELECTOR = "tr.course, tr.courserow";
 
 // Function to get the appropriate description for difficulty or workload
 function getDescription(value, type) {
@@ -116,62 +122,62 @@ function createPill(text, colorClass, tooltipText = "") {
   return pill;
 }
 
-// Function to validate if a link exists
-async function validateLink(url) {
-  try {
-    const response = await chrome.runtime.sendMessage({
-      contentScriptQuery: "validate-link",
-      url: url,
-    });
-    return response.isValid;
-  } catch (error) {
-    console.error("Error validating link:", error);
-    return true; // Assume valid if validation fails
-  }
+// Non-numeric cells (still loading or failed) sort last. Unlike parseFloat(value) || -Infinity,
+// this keeps a real 0 (e.g. difficulty 0.00) in its place
+function toSortNumber(value) {
+  const number = parseFloat(value);
+  return Number.isNaN(number) ? -Infinity : number;
 }
 
-// Function to create an external link icon
-function createExternalLink(emnekode, service) {
+// Function to create an external link icon; a boolean knownValidity skips the HEAD check (validateLink() in utils.js)
+function createExternalLink(emnekode, service, knownValidity) {
+  const { name, buildUrl, title, icon } = EXTERNAL_LINKS[service];
   const link = document.createElement("a");
-  const fullUrl = EXTERNAL_LINKS[service].buildUrl(emnekode);
+  const fullUrl = buildUrl(emnekode);
   link.href = fullUrl;
   link.target = "_blank";
   link.rel = "noopener noreferrer";
-  link.title = EXTERNAL_LINKS[service].title;
+  link.title = title;
   link.classList.add("emnehjelper-link");
-  link.setAttribute("aria-label", EXTERNAL_LINKS[service].title);
-  
+  link.setAttribute("aria-label", title);
+
   // Prevent row click from hijacking link clicks
   link.addEventListener("click", (e) => {
     e.stopPropagation();
     // Keep link clickable even if invalid so user can verify
   });
-  
+
   const img = document.createElement("img");
-  img.src = EXTERNAL_LINKS[service].icon;
-  img.alt = EXTERNAL_LINKS[service].title;
+  img.src = icon;
+  img.alt = title;
   img.classList.add("emnehjelper-link-icon");
   link.appendChild(img);
-  
-  // Validate all external links asynchronously
-  // Add loading state
+
+  const applyValidity = (isValid) => {
+    if (!isValid) {
+      const message = `${name.charAt(0).toUpperCase() + name.slice(1)} har ikke data for dette emnet`;
+      link.classList.add("emnehjelper-link-invalid");
+      link.title = message;
+      link.setAttribute("aria-label", message);
+    } else {
+      link.title = title;
+    }
+  };
+
+  if (typeof knownValidity === "boolean") {
+    applyValidity(knownValidity);
+    return link;
+  }
+
+  // Validate the link asynchronously, with a loading state meanwhile
   link.classList.add("emnehjelper-link-loading");
-  const serviceName = service === "STUDIEKVALITETSPORTALEN" ? "studiekvalitetsportalen" : 
-                      service === "EMNR" ? "emnr" :
-                      service === "KARAKTERWEB" ? "karakterweb" : "karakterer.net";
-  link.title = `Sjekker om ${serviceName} har data for emnet...`;
-  
+  link.title = `Sjekker om ${name} har data for emnet...`;
+
   validateLink(fullUrl).then(isValid => {
     link.classList.remove("emnehjelper-link-loading");
-    if (!isValid) {
-      link.classList.add("emnehjelper-link-invalid");
-      link.title = `${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} har ikke data for dette emnet`;
-      link.setAttribute("aria-label", `${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} har ikke data for dette emnet`);
-    } else {
-      link.title = EXTERNAL_LINKS[service].title;
-    }
+    applyValidity(isValid);
   });
-  
+
   return link;
 }
 
@@ -260,8 +266,8 @@ function sortTable(table, colIndex, sortType) {
     let valB = cellB.dataset.sortValue ?? cellB.textContent.trim();
     
     if (sortType === "number") {
-      valA = parseFloat(valA) || -Infinity;
-      valB = parseFloat(valB) || -Infinity;
+      valA = toSortNumber(valA);
+      valB = toSortNumber(valB);
     }
     
     let result = 0;
@@ -291,171 +297,180 @@ function addCourseNameHoverEffect(courseNameCell) {
   });
 }
 
+// Add the emnehjelper cells to a course row and fill them in once its data arrives
+function processCourseRow(row) {
+  if (row.classList.contains("emnehjelper-processed")) return;
+
+  // Read the code before marking the row: the marker class would otherwise become classList[1]
+  const cell = row.querySelector("td");
+  const emnekode = (row.classList[1] ?? cell?.textContent ?? "").trim();
+  row.classList.add("emnehjelper-processed");
+
+  // A row without a name span (e.g. a name rendered as a link) only loses the hover effect
+  const courseNameCell = row.querySelector("td:nth-child(2) > span") ?? row.querySelector("td.coursecode");
+  if (courseNameCell) {
+    addCourseNameHoverEffect(courseNameCell);
+  }
+
+  // Add placeholder cells for loading state
+  const reviewsCell = createCell(createLoadingAnimation());
+  const difficultyCell = createCell();
+  const workloadCell = createCell();
+  const gradeCell = createCell();
+  const linksCell = createCell();
+
+  row.appendChild(reviewsCell);
+  row.appendChild(difficultyCell);
+  row.appendChild(workloadCell);
+  row.appendChild(gradeCell);
+  row.appendChild(linksCell);
+
+  if (!emnekode) {
+    reviewsCell.textContent = "—";
+    return;
+  }
+
+  // Fetch data for each row immediately and update the DOM
+  chrome.runtime
+    .sendMessage({
+      contentScriptQuery: "get-karakter-data",
+      emnekode: emnekode,
+    })
+    .then((response) => {
+      const mergedData = mergeData(
+        response.emnrData,
+        response.karakterwebData
+      );
+
+      // Clear loading animation
+      reviewsCell.innerHTML = "";
+
+      if (!mergedData) {
+        // Show error state
+        reviewsCell.textContent = "—";
+        difficultyCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Ingen data tilgjengelig"));
+        workloadCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Ingen data tilgjengelig"));
+        gradeCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Ingen data tilgjengelig"));
+        return;
+      }
+
+      const {
+        average_difficulty,
+        average_workload,
+        average_grade,
+        emnr_review_count,
+        karakterweb_review_count,
+        review_count,
+        is_graded,
+        pass_rate,
+      } = mergedData;
+
+      // Create difficulty pill
+      const difficultyPill = createPill(
+        getDescription(average_difficulty, "difficulty"),
+        getColorClass(average_difficulty, "difficulty")
+      );
+      difficultyCell.appendChild(difficultyPill);
+      difficultyCell.dataset.sortValue = getSortValue(average_difficulty);
+
+      // Add review count to its own cell with breakdown
+      const reviewAbbr = document.createElement("abbr");
+      reviewAbbr.classList.add("emnehjelper-reviews");
+      reviewAbbr.textContent = review_count;
+      reviewAbbr.title = `${emnr_review_count} fra emnr.no\n${karakterweb_review_count} fra karakterweb.no`;
+      reviewAbbr.style.textDecoration = "underline dotted";
+      reviewAbbr.style.cursor = "help";
+      reviewsCell.appendChild(reviewAbbr);
+      reviewsCell.dataset.sortValue = review_count ?? 0;
+
+      // Create workload pill
+      const workloadPill = createPill(
+        getDescription(average_workload, "workload"),
+        getColorClass(average_workload, "workload")
+      );
+      workloadCell.appendChild(workloadPill);
+      workloadCell.dataset.sortValue = getSortValue(average_workload);
+
+      // Create grade/pass pill
+      if (is_graded) {
+        const gradePill = createPill(
+          getDescription(average_grade, "grade"),
+          getColorClass(average_grade, "grade")
+        );
+        gradeCell.appendChild(gradePill);
+        gradeCell.dataset.sortValue = getSortValue(average_grade);
+      } else {
+        const passPill = createPill(
+          getDescription(pass_rate, "pass"),
+          getColorClass(pass_rate, "pass")
+        );
+        gradeCell.appendChild(passPill);
+        gradeCell.dataset.sortValue = getSortValue(pass_rate);
+      }
+
+      // Add warning indicator if an API failed (a service without data for the course has not failed)
+      const failedAPIs = getFailedSources(response).map((source) => `${source}.no`);
+      if (failedAPIs.length > 0) {
+        // Mark row as having warning
+        row.classList.add('emnehjelper-warning-row');
+
+        // Add floating warning indicator
+        const warningIndicator = document.createElement('div');
+        warningIndicator.className = 'emnehjelper-warning-indicator';
+        warningIndicator.title = `Ufullstendige data: Kunne ikke hente fra ${failedAPIs.join(' og ')}`;
+        reviewsCell.style.position = 'relative';
+        reviewsCell.appendChild(warningIndicator);
+      }
+
+      // Create external links. emnr.no is not in host_permissions, so CORS blocks a HEAD request to it
+      // and every course would look missing; the emnr API response already says whether emnr has the course
+      const linksContainer = document.createElement("div");
+      linksContainer.classList.add("emnehjelper-links");
+      linksContainer.appendChild(createExternalLink(emnekode, "EMNR", !response.emnrNotFound));
+      linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERWEB"));
+      linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERER"));
+      linksContainer.appendChild(createExternalLink(emnekode, "STUDIEKVALITETSPORTALEN"));
+      linksCell.appendChild(linksContainer);
+    })
+    .catch((error) => {
+      console.error(
+        `Error fetching course data for ${emnekode}`,
+        error
+      );
+      reviewsCell.textContent = "—";
+      difficultyCell.innerHTML = "";
+      difficultyCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Feil ved henting av data"));
+    });
+}
+
+// Enhance the course tables and rows in a node that was added to (or already is in) the page
+function processNode(node) {
+  if (!node.querySelectorAll) {
+    return;
+  }
+
+  // Add headers to any new tables
+  node.querySelectorAll("table.courselist").forEach(addColumnHeaders);
+  if (node.matches?.("table.courselist")) {
+    addColumnHeaders(node);
+  }
+
+  // Rows arrive inside a table or container, or are appended on their own
+  const rows = node.matches?.(COURSE_ROW_SELECTOR)
+    ? [node]
+    : node.querySelectorAll(COURSE_ROW_SELECTOR);
+  rows.forEach(processCourseRow);
+}
+
 (async function () {
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        if (!node.querySelectorAll) {
-          return;
-        }
-        
-        // Add headers to any new tables
-        const tables = node.querySelectorAll ? node.querySelectorAll("table.courselist") : [];
-        tables.forEach(addColumnHeaders);
-        if (node.tagName === "TABLE" && node.classList.contains("courselist")) {
-          addColumnHeaders(node);
-        }
-        
-        let rows = node.querySelectorAll("tr.course, tr.courserow");
-        if (rows.length == 0 && node.classList.contains("courserow")) {
-          rows = [node];
-        }
-
-        rows.forEach((row) => {
-          const cell = row.querySelector("td");
-          const emnekode = row.classList[1] ?? cell.textContent;
-          if (row.classList.contains("emnehjelper-processed")) return;
-          row.classList.add("emnehjelper-processed");
-          
-          const courseNameCell = row.querySelector("td:nth-child(2) > span") ?? row.querySelector("td.coursecode");
-          addCourseNameHoverEffect(courseNameCell);
-
-          // Add placeholder cells for loading state
-          const reviewsCell = createCell(createLoadingAnimation());
-          const difficultyCell = createCell();
-          const workloadCell = createCell();
-          const gradeCell = createCell();
-          const linksCell = createCell();
-          
-          row.appendChild(reviewsCell);
-          row.appendChild(difficultyCell);
-          row.appendChild(workloadCell);
-          row.appendChild(gradeCell);
-          row.appendChild(linksCell);
-
-          // Fetch data for each row immediately and update the DOM
-          chrome.runtime
-            .sendMessage({
-              contentScriptQuery: "get-karakter-data",
-              emnekode: emnekode,
-            })
-            .then((response) => {
-              const mergedData = mergeData(
-                response.emnrData,
-                response.karakterwebData
-              );
-
-              // Clear loading animation
-              reviewsCell.innerHTML = "";
-
-              if (!mergedData) {
-                // Show error state
-                reviewsCell.textContent = "—";
-                difficultyCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Ingen data tilgjengelig"));
-                workloadCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Ingen data tilgjengelig"));
-                gradeCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Ingen data tilgjengelig"));
-                return;
-              }
-
-              const {
-                average_difficulty,
-                average_workload,
-                average_grade,
-                emnr_review_count,
-                karakterweb_review_count,
-                review_count,
-                is_graded,
-                pass_rate,
-              } = mergedData;
-
-              // Check for API failures and show warning if needed
-              const hasEmnrData = response.emnrData !== null;
-              const hasKarakterweb = response.karakterwebData !== null;
-              
-              // Create difficulty pill
-              const difficultyPill = createPill(
-                getDescription(average_difficulty, "difficulty"),
-                getColorClass(average_difficulty, "difficulty")
-              );
-              difficultyCell.appendChild(difficultyPill);
-              difficultyCell.dataset.sortValue = getSortValue(average_difficulty);
-              
-              // Add review count to its own cell with breakdown
-              const reviewAbbr = document.createElement("abbr");
-              reviewAbbr.classList.add("emnehjelper-reviews");
-              reviewAbbr.textContent = review_count;
-              reviewAbbr.title = `${emnr_review_count} fra emnr.no\n${karakterweb_review_count} fra karakterweb.no`;
-              reviewAbbr.style.textDecoration = "underline dotted";
-              reviewAbbr.style.cursor = "help";
-              reviewsCell.appendChild(reviewAbbr);
-              reviewsCell.dataset.sortValue = review_count ?? 0;
-
-              // Create workload pill
-              const workloadPill = createPill(
-                getDescription(average_workload, "workload"),
-                getColorClass(average_workload, "workload")
-              );
-              workloadCell.appendChild(workloadPill);
-              workloadCell.dataset.sortValue = getSortValue(average_workload);
-
-              // Create grade/pass pill
-              if (is_graded) {
-                const gradePill = createPill(
-                  getDescription(average_grade, "grade"),
-                  getColorClass(average_grade, "grade")
-                );
-                gradeCell.appendChild(gradePill);
-                gradeCell.dataset.sortValue = getSortValue(average_grade);
-              } else {
-                const passPill = createPill(
-                  getDescription(pass_rate, "pass"),
-                  getColorClass(pass_rate, "pass")
-                );
-                gradeCell.appendChild(passPill);
-                gradeCell.dataset.sortValue = getSortValue(pass_rate);
-              }
-
-              // Add warning indicator if API failed
-              if (!hasEmnrData || !hasKarakterweb) {
-                const failedAPIs = [];
-                if (!hasEmnrData) failedAPIs.push('emnr.no');
-                if (!hasKarakterweb) failedAPIs.push('karakterweb.no');
-                
-                // Mark row as having warning
-                row.classList.add('emnehjelper-warning-row');
-                
-                // Add floating warning indicator
-                const warningIndicator = document.createElement('div');
-                warningIndicator.className = 'emnehjelper-warning-indicator';
-                warningIndicator.title = `Ufullstendige data: Kunne ikke hente fra ${failedAPIs.join(' og ')}`;
-                reviewsCell.style.position = 'relative';
-                reviewsCell.appendChild(warningIndicator);
-              }
-
-              // Create external links
-              const linksContainer = document.createElement("div");
-              linksContainer.classList.add("emnehjelper-links");
-              linksContainer.appendChild(createExternalLink(emnekode, "EMNR"));
-              linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERWEB"));
-              linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERER"));
-              linksContainer.appendChild(createExternalLink(emnekode, "STUDIEKVALITETSPORTALEN"));
-              linksCell.appendChild(linksContainer);
-            })
-            .catch((error) => {
-              console.error(
-                `Error fetching course data for ${emnekode}`,
-                error
-              );
-              difficultyCell.innerHTML = "";
-              difficultyCell.appendChild(createPill("—", TAG_COLORS.GRAY, "Feil ved henting av data"));
-            });
-        });
-      });
+      mutation.addedNodes.forEach(processNode);
     });
   });
   
-  // Initial scan for existing tables
-  document.querySelectorAll("table.courselist").forEach(addColumnHeaders);
+  // Tables already rendered before this script ran: their header cells get added here, so their rows need cells too
+  document.querySelectorAll("table.courselist").forEach(processNode);
   
   observer.observe(document, { childList: true, subtree: true });
 })();

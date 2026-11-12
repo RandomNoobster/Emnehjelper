@@ -85,22 +85,35 @@ const PASS_FAIL_LABELS = {
 
 function extractEmnekodeFromURL(url) {
   const match = url.match(URL_REGEX);
-  return match ? match[1] : null;
+  // Course codes are upper case; a lowercase course URL must not produce different links or requests
+  return match ? match[1].toUpperCase() : null;
 }
 
-// Send a message to get data from the background script
+function getDecodedPageUrl() {
+  try {
+    return decodeURI(window.location.href);
+  } catch {
+    // Malformed percent-encoding, e.g. a stray "%" in the query string
+    return window.location.href;
+  }
+}
+
+// Format a pass rate; the -1 "no data" sentinel and missing values show as "--%"
+function formatPassRate(passRate) {
+  return Number.isFinite(passRate) && passRate >= 0
+    ? `${passRate.toFixed(1)}%`
+    : "--%";
+}
+
+// Send a message to get data from the background script; resolves to undefined if that fails
 async function fetchCourseData(emnekode) {
   try {
-    const response = await chrome.runtime.sendMessage({
+    return await chrome.runtime.sendMessage({
       contentScriptQuery: "get-karakter-data",
       emnekode,
     });
-    return {
-      emnrData: response.emnrData,
-      karakterwebData: response.karakterwebData,
-    };
   } catch (error) {
-    // Error fetching course data
+    console.error("Error fetching course data:", error);
   }
 }
 
@@ -159,12 +172,9 @@ function makePopUp(data, emnekode, response, startMinimized = false) {
   const content = document.createElement("div");
   content.className = "popup-content";
 
-  // Add warning banner if any API failed
-  if (response && (response.emnrData === null || response.karakterwebData === null)) {
-    const failedAPIs = [];
-    if (response.emnrData === null) failedAPIs.push('emnr');
-    if (response.karakterwebData === null) failedAPIs.push('karakterweb');
-    
+  // Add warning banner if any API failed (a service that simply has no data for the course is not a failure)
+  const failedAPIs = getFailedSources(response);
+  if (failedAPIs.length > 0) {
     const warning = document.createElement("div");
     warning.className = "warning-banner";
     warning.innerHTML = `<span class="warning-icon">⚠️</span> Data fra ${failedAPIs.join(' og ')} kunne ikke hentes. Viser kun tilgjengelig data.`;
@@ -177,7 +187,7 @@ function makePopUp(data, emnekode, response, startMinimized = false) {
   
   // Pass rate stat
   const passRateStat = createStatCard(
-    `${data.pass_rate?.toFixed(1) ?? "--"}%`,
+    formatPassRate(data.pass_rate),
     "Beståttprosent"
   );
   statsGrid.appendChild(passRateStat);
@@ -303,11 +313,14 @@ function makePopUp(data, emnekode, response, startMinimized = false) {
   const servicesGrid = document.createElement("div");
   servicesGrid.className = "services-grid";
   
+  // emnr.no is not in host_permissions, so CORS blocks a HEAD request to it and every course would
+  // look missing; the emnr API response already says whether emnr has the course
   servicesGrid.appendChild(createServiceButton(
     ENDPOINTS.EMNR(emnekode),
     chrome.runtime.getURL("media/emnr.ico"),
     "emnr.no",
-    "Vurderinger"
+    "Vurderinger",
+    !response.emnrNotFound
   ));
   
   servicesGrid.appendChild(createServiceButton(
@@ -339,6 +352,9 @@ function makePopUp(data, emnekode, response, startMinimized = false) {
   popupParent.appendChild(popup);
   popupParent.appendChild(bubble);
 
+  // Natural height of the expanded popup, measured once it is in the page
+  let expandedHeight = 0;
+
   // Toggle popup visibility
   function togglePopup(showPopup) {
     const bubbleSize = 50;
@@ -351,9 +367,10 @@ function makePopUp(data, emnekode, response, startMinimized = false) {
       const rightEdge = rect.right;
       const newLeft = rightEdge - popupWidth;
       
-      // Clamp to screen bounds
+      // Clamp to screen bounds (the CSS caps the popup at the viewport height minus the margins)
+      const popupHeight = Math.min(expandedHeight, window.innerHeight - 2 * margin);
       const clampedLeft = Math.max(margin, Math.min(newLeft, window.innerWidth - popupWidth - margin));
-      const clampedTop = Math.max(margin, Math.min(rect.top, window.innerHeight - 400));
+      const clampedTop = Math.max(margin, Math.min(rect.top, window.innerHeight - popupHeight - margin));
       
       // First, set expanding state (keeps inner hidden during width change)
       popupParent.classList.remove("minimized");
@@ -405,15 +422,18 @@ function makePopUp(data, emnekode, response, startMinimized = false) {
   // Append to body
   document.body.appendChild(popupParent);
 
+  // Measure at full width, before minimizing; scrollHeight is the content's height even when it scrolls
+  expandedHeight = header.offsetHeight + content.scrollHeight;
+
   if (startMinimized) {
     popupParent.classList.add("minimized");
   }
 }
 
 // Create a stat card element
-function createStatCard(value, label, fullWidth = false) {
+function createStatCard(value, label) {
   const card = document.createElement("div");
-  card.className = "stat-card" + (fullWidth ? " full-width" : "");
+  card.className = "stat-card";
   
   const valueEl = document.createElement("div");
   valueEl.className = "stat-value";
@@ -457,21 +477,8 @@ function createReviewSource(logoUrl, name, count) {
   return source;
 }
 
-// Function to validate if a link exists
-async function validateLink(url) {
-  try {
-    const response = await chrome.runtime.sendMessage({
-      contentScriptQuery: "validate-link",
-      url: url,
-    });
-    return response.isValid;
-  } catch (error) {
-    return true; // Assume valid if validation fails
-  }
-}
-
-// Create a service button link
-function createServiceButton(href, logoUrl, name, description) {
+// Create a service button link; a boolean knownValidity skips the HEAD check (validateLink() in utils.js)
+function createServiceButton(href, logoUrl, name, description, knownValidity) {
   const btn = document.createElement("a");
   btn.className = "service-btn";
   btn.href = href;
@@ -503,24 +510,49 @@ function createServiceButton(href, logoUrl, name, description) {
   arrow.textContent = "→";
   btn.appendChild(arrow);
   
-  // Validate all service links asynchronously
-  // Add loading state
-  btn.classList.add("service-btn-loading");
-  const originalDesc = descEl.textContent;
-  descEl.textContent = "Sjekker tilgjengelighet...";
-  
-  validateLink(href).then(isValid => {
-    btn.classList.remove("service-btn-loading");
+  const applyValidity = (isValid) => {
     if (!isValid) {
       btn.classList.add("service-btn-invalid");
       descEl.textContent = "Data er ikke tilgjengelig for dette emnet";
       // Keep button clickable so user can verify
-    } else {
-      descEl.textContent = originalDesc;
     }
+  };
+
+  if (typeof knownValidity === "boolean") {
+    applyValidity(knownValidity);
+    return btn;
+  }
+
+  // Validate the link asynchronously, with a loading state meanwhile
+  btn.classList.add("service-btn-loading");
+  descEl.textContent = "Sjekker tilgjengelighet...";
+
+  validateLink(href).then(isValid => {
+    btn.classList.remove("service-btn-loading");
+    descEl.textContent = description;
+    applyValidity(isValid);
   });
-  
+
   return btn;
+}
+
+// Title and [value, label] items for a slider's help tooltip
+function getSliderTooltip(label, scaleLabels, timePeriodLabel) {
+  const periodText = timePeriodLabel || "siste 3 år";
+  if (scaleLabels === PASS_FAIL_LABELS) {
+    return {
+      title: `Beståttprosent (${periodText})`,
+      items: [["0%", "Ingen"], ["50%", "Halvparten"], ["100%", "Alle"]],
+    };
+  }
+  if (scaleLabels === GRADE_LABELS) {
+    return {
+      title: `Snittkarakter (${periodText})`,
+      items: ["F", "E", "D", "C", "B", "A"].map((grade, i) => [grade, String(i)]),
+    };
+  }
+  // Workload and difficulty share the same 0-2 scale
+  return { title: label, items: [["Lav", "0"], ["Middels", "1"], ["Høy", "2"]] };
 }
 
 // Modern slider with proper structure
@@ -555,58 +587,25 @@ function addModernSlider(parent, label, value, scaleLabels, min, max, colorSchem
   const tooltipScale = document.createElement("div");
   tooltipScale.className = "tooltip-scale";
   
-  if (scaleLabels === PASS_FAIL_LABELS) {
-    const periodText = timePeriodLabel || "siste 3 år";
-    tooltipTitle.textContent = `Beståttprosent (${periodText})`;
-    const items = [
-      { value: "0%", label: "Ingen" },
-      { value: "50%", label: "Halvparten" },
-      { value: "100%", label: "Alle" }
-    ];
-    items.forEach(item => {
-      const scaleItem = document.createElement("div");
-      scaleItem.className = "tooltip-scale-item";
-      scaleItem.innerHTML = `<span class="tooltip-value">${item.value}</span><span class="tooltip-label">${item.label}</span>`;
-      tooltipScale.appendChild(scaleItem);
-    });
-  } else if (scaleLabels === GRADE_LABELS) {
-    const periodText = timePeriodLabel || "siste 3 år";
-    tooltipTitle.textContent = `Snittkarakter (${periodText})`;
-    const grades = ["F", "E", "D", "C", "B", "A"];
-    grades.forEach((grade, i) => {
-      const scaleItem = document.createElement("div");
-      scaleItem.className = "tooltip-scale-item";
-      scaleItem.innerHTML = `<span class="tooltip-value">${grade}</span><span class="tooltip-label">${i}</span>`;
-      tooltipScale.appendChild(scaleItem);
-    });
-  } else if (label === "Vanskelighetsgrad") {
-    tooltipTitle.textContent = "Vanskelighetsgrad";
-    const levels = [
-      { value: "Lav", num: "0" },
-      { value: "Middels", num: "1" },
-      { value: "Høy", num: "2" }
-    ];
-    levels.forEach(level => {
-      const scaleItem = document.createElement("div");
-      scaleItem.className = "tooltip-scale-item";
-      scaleItem.innerHTML = `<span class="tooltip-value">${level.value}</span><span class="tooltip-label">${level.num}</span>`;
-      tooltipScale.appendChild(scaleItem);
-    });
-  } else {
-    tooltipTitle.textContent = "Arbeidsmengde";
-    const levels = [
-      { value: "Lav", num: "0" },
-      { value: "Middels", num: "1" },
-      { value: "Høy", num: "2" }
-    ];
-    levels.forEach(level => {
-      const scaleItem = document.createElement("div");
-      scaleItem.className = "tooltip-scale-item";
-      scaleItem.innerHTML = `<span class="tooltip-value">${level.value}</span><span class="tooltip-label">${level.num}</span>`;
-      tooltipScale.appendChild(scaleItem);
-    });
-  }
-  
+  const { title, items } = getSliderTooltip(label, scaleLabels, timePeriodLabel);
+  tooltipTitle.textContent = title;
+  items.forEach(([itemValue, itemLabel]) => {
+    const scaleItem = document.createElement("div");
+    scaleItem.className = "tooltip-scale-item";
+
+    const itemValueEl = document.createElement("span");
+    itemValueEl.className = "tooltip-value";
+    itemValueEl.textContent = itemValue;
+
+    const itemLabelEl = document.createElement("span");
+    itemLabelEl.className = "tooltip-label";
+    itemLabelEl.textContent = itemLabel;
+
+    scaleItem.appendChild(itemValueEl);
+    scaleItem.appendChild(itemLabelEl);
+    tooltipScale.appendChild(scaleItem);
+  });
+
   tooltip.appendChild(tooltipTitle);
   tooltip.appendChild(tooltipScale);
   helpIcon.appendChild(tooltip);
@@ -616,11 +615,14 @@ function addModernSlider(parent, label, value, scaleLabels, min, max, colorSchem
   const valueDisplay = document.createElement("span");
   valueDisplay.className = "slider-value-display";
   
+  // Missing values arrive as NaN (no reviews), -1 (no grade data) or undefined
+  const hasValue = Number.isFinite(value) && value >= min && value <= max;
+
   let displayValue;
   if (scaleLabels === PASS_FAIL_LABELS) {
-    displayValue = value?.toFixed(1) + "%" ?? "--%";
+    displayValue = hasValue ? formatPassRate(value) : "--%";
   } else {
-    displayValue = value >= min && value <= max
+    displayValue = hasValue
       ? `${scaleLabels[Math.round(value)]} (${value.toFixed(2)})`
       : "- (-.--)";
   }
@@ -637,7 +639,11 @@ function addModernSlider(parent, label, value, scaleLabels, min, max, colorSchem
   slider.min = min;
   slider.max = max;
   slider.step = "0.01";
-  slider.value = value?.toFixed(2) ?? min;
+  slider.value = hasValue ? value.toFixed(2) : min;
+  // Without data a thumb anywhere on the scale would suggest a value, so it is hidden
+  if (!hasValue) {
+    slider.classList.add("slider-no-data");
+  }
   slider.disabled = true;
   group.appendChild(slider);
   
@@ -676,6 +682,18 @@ function makePopupDraggable(popup, onBubbleClick) {
   let initialX, initialY, offsetX, offsetY;
 
   popup.addEventListener("mousedown", (event) => {
+    // Only the primary button drags: on macOS and Linux a right-click opens the context menu on
+    // mousedown and the menu swallows the mouseup, which would leave the popup following the cursor
+    if (event.button !== 0) {
+      return;
+    }
+
+    // A press on a scrollbar (past the content box of a scrolling element) scrolls, it does not drag
+    const target = event.target;
+    if (target.scrollHeight > target.clientHeight && event.offsetX >= target.clientWidth) {
+      return;
+    }
+
     isDragging = true;
     hasDragged = false;
     initialX = event.clientX;
@@ -728,11 +746,15 @@ function makePopupDraggable(popup, onBubbleClick) {
 
 // Main function
 (async function main() {
-  const url = decodeURI(window.location.href);
+  const url = getDecodedPageUrl();
   const emnekode = extractEmnekodeFromURL(url);
 
   if (emnekode) {
     const response = await fetchCourseData(emnekode);
+    if (!response) {
+      console.error("No course data received for:", emnekode);
+      return;
+    }
     const mergedData = mergeData(response.emnrData, response.karakterwebData);
     if (mergedData) {
       const startMinimized = await getPopupMinimizedFlag();
