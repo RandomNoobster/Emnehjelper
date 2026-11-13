@@ -18,25 +18,25 @@ Du kan installere Emnehjelper på alle [Chromium-baserte](https://alternativeto.
 
 ## Bildekatalog
 
-| ![Før- og etter bilde av en studieplan](/media/study_plan_comparison_light_lowres.png) |
-| -------------------------------------------------------------------------------------- |
-| Dette bildet viser en studieplan med og uten Emnehjelper.                              |
+| ![Bilde av en studieplan med statistikk for hvert emne](/media/store/screenshot-1-studieplan.png)      |
+| ------------------------------------------------------------------------------------------------------ |
+| Dette bildet viser en studieplan med vanskelighetsgrad, arbeidsmengde og snittkarakter for hvert emne. |
 
-| ![Bilde av en oppgradert studieplan](/media/study_plan_light_lowres.png)        |
-| ------------------------------------------------------------------------------- |
-| Dette bildet viser det forbedrede utseende til studieplaner på sidene til NTNU. |
+| ![Før- og etter bilde av en studieplan](/media/store/screenshot-2-for-og-etter.png) |
+| ----------------------------------------------------------------------------------- |
+| Dette bildet viser en studieplan med og uten Emnehjelper.                           |
 
-| ![Bilde av den modifiserte emnesiden i lys modus](/media/course_page_light_lowres.png)        |
-| --------------------------------------------------------------------------------------------- |
-| Dette bildet viser den modifiserte NTNU-emnesiden i lys modus, med et lyst brukergrensesnitt. |
+| ![Bilde av panelet på emnesiden](/media/store/screenshot-3-emneside.png) |
+| ------------------------------------------------------------------------ |
+| Dette bildet viser panelet med statistikk på emnesiden til TDT4100.      |
 
-| ![Bilde av den modifiserte emnesiden i mørk modus](/media/course_page_dark_lowres.png)          |
-| ----------------------------------------------------------------------------------------------- |
-| Dette bildet viser den modifiserte NTNU-emnesiden i mørk modus, med et mørkt brukergrensesnitt. |
+| ![Bilde av panelet i lys og mørk modus](/media/store/screenshot-4-mork-modus.png) |
+| --------------------------------------------------------------------------------- |
+| Dette bildet viser panelet i lys og mørk modus.                                   |
 
-| ![Bilde av om-popupen til utvidelsen](/media/about_popup_lowres.png) |
-| -------------------------------------------------------------------- |
-| Dette bildet viser om-popupen til utvidelsen.                        |
+| ![Bilde av menyen til utvidelsen](/media/store/screenshot-5-kom-i-gang.png)  |
+| ---------------------------------------------------------------------------- |
+| Dette bildet viser menyen som åpnes når du trykker på ikonet til utvidelsen. |
 
 | ![Animert GIF som demonstrerer at man kan dra rundt på popupen](/media/dragging_popup_demo.gif) |
 | ----------------------------------------------------------------------------------------------- |
