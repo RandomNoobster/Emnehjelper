@@ -14,7 +14,6 @@ import { fileURLToPath } from 'node:url';
 const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_DIR = path.resolve(TOOL_DIR, '..', '..');
 const CACHE_DIR = path.join(TOOL_DIR, '.cache');
-const KARAKTERWEB_LINKS_FILE = path.join(CACHE_DIR, 'karakterweb-links.json');
 const STUDY_PLAN_PICK_FILE = path.join(CACHE_DIR, 'study-plan-pick.json');
 
 const STUDY_PLAN_URL = 'https://www.ntnu.no/studier/mtdt/studieretninger-og-hovedprofiler#year=2024&programmeCode=MTDT';
@@ -27,11 +26,6 @@ const DEVICE_SCALE_FACTOR = 2;
 const ABOUT_POPUP_WIDTH = 320;
 const HEADING_GAP_PX = 20; // Space between NTNU's sticky header and the semester heading
 const DATA_TIMEOUT_MS = 180_000;
-
-// Must match service-worker.js
-const LINK_VALIDATION_CACHE_KEY = 'link-validation-cache-v2';
-const LINK_RECHECK_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-const KARAKTERWEB_REQUEST_GAP_MS = 400;
 
 const FORCE_DARK_ARGS = ['--force-dark-mode', '--enable-features=WebContentsForceDark'];
 
@@ -102,58 +96,7 @@ async function settle(page) {
   await page.waitForTimeout(800);
 }
 
-// ---------- Karakterweb link states ----------
-
-// Karakterweb's bot protection answers headless Chromium's HEAD requests with 403, so the extension would
-// mark every Karakterweb link as missing. Never spoof the browser to get past that. Instead, check the links
-// with plain Node requests, using the same rules as the extension's validate-link handler in service-worker.js.
-async function checkKarakterwebLinks(courseCodes) {
-  const known = fs.existsSync(KARAKTERWEB_LINKS_FILE) ? JSON.parse(fs.readFileSync(KARAKTERWEB_LINKS_FILE, 'utf8')) : {};
-  for (const code of courseCodes) {
-    const url = `https://karakterweb.no/ntnu/${code.toLowerCase()}`;
-    if (known[url] && Date.now() - known[url].checkedAt < LINK_RECHECK_AGE_MS) continue;
-    try {
-      const response = await fetch(url, { method: 'HEAD', redirect: 'follow' });
-      if (response.status === 429 || response.status >= 500) {
-        warn(`Karakterweb answered ${response.status} for ${code}; the extension will check that link itself`);
-      } else {
-        const isInstituteLandingPage = /^https:\/\/(www\.)?karakterweb\.no\/ntnu\/?$/i.test(response.url);
-        known[url] = { isValid: response.ok && !isInstituteLandingPage, checkedAt: Date.now() };
-      }
-    } catch (error) {
-      warn(`Could not check the Karakterweb link for ${code}: ${error}`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, KARAKTERWEB_REQUEST_GAP_MS));
-  }
-  fs.writeFileSync(KARAKTERWEB_LINKS_FILE, JSON.stringify(known, null, 1));
-  return known;
-}
-
-// Put the link states in the extension's own link-validation cache, as if it had checked them itself
-async function seedLinkValidationCache(serviceWorker, known) {
-  await serviceWorker.evaluate(async ([cacheKey, entries]) => {
-    const stored = await chrome.storage.local.get(cacheKey);
-    const cache = stored[cacheKey] || {};
-    for (const [url, { isValid }] of Object.entries(entries)) {
-      // normalizeKarakterwebLinkUrl() is a top-level function in service-worker.js
-      cache[normalizeKarakterwebLinkUrl(url)] = { isValid, timestamp: Date.now() };
-    }
-    await chrome.storage.local.set({ [cacheKey]: cache });
-  }, [LINK_VALIDATION_CACHE_KEY, known]);
-}
-
 // ---------- Study plan ----------
-
-async function readStudyPlanCourseCodes(context) {
-  const page = await context.newPage();
-  await page.goto(STUDY_PLAN_URL, { waitUntil: 'networkidle' });
-  await page.waitForSelector('table.courselist tr.course, table.courselist tr.courserow');
-  const codes = await page.evaluate(() => [...new Set([...document.querySelectorAll('tr.course, tr.courserow')]
-    .map((row) => (row.classList[1] ?? row.querySelector('td')?.textContent ?? '').trim())
-    .filter(Boolean))]);
-  await page.close();
-  return codes;
-}
 
 // The 3rd-year tables only show after a study direction is picked, and then only a few rows behind "vis mer"
 async function openThirdYear(page) {
@@ -237,10 +180,7 @@ async function scrollToThirdYearTable(page, tableIndex, offset) {
 }
 
 async function captureStudyPlan() {
-  const { context, serviceWorker } = await launchWithExtension({ profileName: 'light' });
-  const codes = await readStudyPlanCourseCodes(context);
-  log(`checking Karakterweb links for ${codes.length} courses`);
-  await seedLinkValidationCache(serviceWorker, await checkKarakterwebLinks(codes));
+  const { context } = await launchWithExtension({ profileName: 'light' });
 
   const page = await context.newPage();
   await openThirdYear(page);
@@ -352,13 +292,11 @@ async function capturePanel(page, file) {
 }
 
 async function captureCoursePage({ colorScheme, forceDark = false, pageFile, panelFile }) {
-  const { context, serviceWorker } = await launchWithExtension({
+  const { context } = await launchWithExtension({
     profileName: forceDark ? 'dark-forced' : colorScheme,
     colorScheme,
     extraArgs: forceDark ? FORCE_DARK_ARGS : [],
   });
-  const courseCode = new URL(COURSE_URL).pathname.split('/').pop();
-  await seedLinkValidationCache(serviceWorker, await checkKarakterwebLinks([courseCode]));
 
   const page = await context.newPage();
   await page.goto(COURSE_URL, { waitUntil: 'networkidle' });

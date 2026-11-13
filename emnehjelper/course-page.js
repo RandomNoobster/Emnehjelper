@@ -313,8 +313,8 @@ function makePopUp(data, emnekode, response, startMinimized = false) {
   const servicesGrid = document.createElement("div");
   servicesGrid.className = "services-grid";
   
-  // The emnr API response already says whether emnr has the course, so no HEAD request to emnr.no is
-  // needed: an error answer to that request (e.g. a rate limit) would show the course as missing
+  // The emnr and Karakterweb data responses already say whether each service has the course, so their
+  // links need no HEAD request: an error answer to one (e.g. a rate limit) would show the course as missing
   servicesGrid.appendChild(createServiceButton(
     ENDPOINTS.EMNR(emnekode),
     chrome.runtime.getURL("media/emnr.ico"),
@@ -327,7 +327,8 @@ function makePopUp(data, emnekode, response, startMinimized = false) {
     ENDPOINTS.KARAKTERWEB(emnekode),
     chrome.runtime.getURL("media/karakterweb.ico"),
     "Karakterweb",
-    "Fordelinger, historikk og vurderinger"
+    "Fordelinger, historikk og vurderinger",
+    !response.karakterwebNotFound
   ));
   
   servicesGrid.appendChild(createServiceButton(
