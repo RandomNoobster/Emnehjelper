@@ -11,6 +11,8 @@
     ],
     "host_permissions": [
         "https://emnehjelper-cache.kriosen03.workers.dev/*",
+        "https://karakterweb.no/ntnu/*",
+        "https://www.karakterweb.no/ntnu/*",
         "https://api.emnr.no/course/*",
         "https://innsida.ntnu.no/*",
         "https://karakterer.net/*"

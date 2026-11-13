@@ -105,6 +105,7 @@ All user-facing text in Norwegian (Bokmål):
 ## External Dependencies
 - `https://api.emnr.no/course/{emnekode}/`
 - `emnehjelper/config.js` → cached Karakterweb proxy URL (`KARAKTERWEB_CACHE_BASE`)
+- `https://karakterweb.no/ntnu/*` and `https://www.karakterweb.no/ntnu/*` stay in `host_permissions` although nothing fetches them today (the Karakterweb link takes its state from the cached data). They are kept so a future feature can use them without a new permission prompt for existing users.
 
 Karakterweb grade/evaluation data is fetched via the Cloudflare Worker in `worker/`. Deploy instructions are in `worker/README.md`.
 
