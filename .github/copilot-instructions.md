@@ -82,7 +82,7 @@ Check `cell.classList.contains("emnehjelper-info")` to avoid re-processing rows.
 
 ### Store Screenshots
 - Run `npm run shots` in `tools/store-screenshots/` to recapture `media/raw/` after visible UI changes; `tools/store-screenshots/README.md` explains each step
-- Karakterweb blocks headless Chromium, so the script checks Karakterweb links with plain Node requests and seeds the extension's link-validation cache. Never spoof the user agent or otherwise bypass the bot protection
+- karakterweb.no's bot protection blocks headless Chromium, but the extension sends it no requests (the Karakterweb link takes its state from the cached Karakterweb data), so the script needs no workaround. Never spoof the user agent or otherwise bypass the bot protection
 - The script depends on NTNU's study plan markup and on the extension's class names; the README lists them
 
 ### Release Process
