@@ -18,36 +18,6 @@ const LETTER_GRADES = ["A", "B", "C", "D", "E", "F"];
 const nextLinkValidationSlotByHost = {};
 let linkValidationCacheWrite = Promise.resolve();
 
-function normalizeKarakterwebLinkUrl(url) {
-  try {
-    const parsed = new URL(url);
-    const isKarakterwebHost =
-      parsed.hostname === "karakterweb.no" ||
-      parsed.hostname.endsWith(".karakterweb.no");
-    if (!isKarakterwebHost) {
-      return url;
-    }
-
-    parsed.hostname = "karakterweb.no";
-    parsed.protocol = "https:";
-
-    const match = parsed.pathname.match(/^\/ntnu\/([^/]+)/i);
-    if (match) {
-      parsed.pathname = `/ntnu/${match[1].toLowerCase()}`;
-    }
-
-    parsed.search = "";
-    parsed.hash = "";
-    return parsed.toString();
-  } catch {
-    return url;
-  }
-}
-
-function isKarakterwebInstituteLandingPage(url) {
-  return /^https:\/\/(www\.)?karakterweb\.no\/ntnu\/?$/i.test(url);
-}
-
 function semesterToNorwegian(semester) {
   if (semester === "spring") return "Vår";
   if (semester === "autumn") return "Høst";
@@ -363,7 +333,7 @@ chrome.runtime.onStartup.addListener(removeExpiredCourseData);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.contentScriptQuery === "validate-link") {
-    const url = normalizeKarakterwebLinkUrl(message.url);
+    const url = message.url;
     
     // Check cache first
     chrome.storage.local.get(VALIDATION_CACHE_KEY, (result) => {
@@ -393,12 +363,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             .then((response) => {
               // Accept 200-299 (success) and 300-399 (redirects) as valid
               // Mark 400-599 (client/server errors) as invalid
-              let isValid = response.status >= 200 && response.status < 400;
-              
-              // Redirect to institute landing page means course doesn't exist
-              if (isValid && isKarakterwebInstituteLandingPage(response.url)) {
-                isValid = false;
-              }
+              const isValid = response.status >= 200 && response.status < 400;
               
               // A rate limit or server error says nothing about the course, so check it again soon
               const isTransientStatus =

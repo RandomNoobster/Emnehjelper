@@ -105,7 +105,6 @@ All user-facing text in Norwegian (Bokmål):
 ## External Dependencies
 - `https://api.emnr.no/course/{emnekode}/`
 - `emnehjelper/config.js` → cached Karakterweb proxy URL (`KARAKTERWEB_CACHE_BASE`)
-- `https://www.karakterweb.no/ntnu/{emnekode}` (link validation only)
 
 Karakterweb grade/evaluation data is fetched via the Cloudflare Worker in `worker/`. Deploy instructions are in `worker/README.md`.
 

@@ -422,13 +422,13 @@ function processCourseRow(row) {
         reviewsCell.appendChild(warningIndicator);
       }
 
-      // Create external links. The emnr link takes its state from the emnr API response, which already says
-      // whether emnr has the course, instead of a HEAD request per course to emnr.no: those went out in one
-      // burst per study plan, and an error answer marked the course as missing on every page using that URL
+      // Create external links. The emnr and Karakterweb links take their state from the data responses, which
+      // already say whether each service has the course, instead of a HEAD request per course: those went out
+      // in one burst per study plan, and an error answer marked the course as missing on every page using that URL
       const linksContainer = document.createElement("div");
       linksContainer.classList.add("emnehjelper-links");
       linksContainer.appendChild(createExternalLink(emnekode, "EMNR", !response.emnrNotFound));
-      linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERWEB"));
+      linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERWEB", !response.karakterwebNotFound));
       linksContainer.appendChild(createExternalLink(emnekode, "KARAKTERER"));
       linksContainer.appendChild(createExternalLink(emnekode, "STUDIEKVALITETSPORTALEN"));
       linksCell.appendChild(linksContainer);
