@@ -63,8 +63,10 @@ Check `cell.classList.contains("emnehjelper-info")` to avoid re-processing rows.
 ## File Organization
 - `emnehjelper/` - Extension source code
 - `media/` - Source graphics (.pdn files for Paint.NET)
+- `media/raw/` - Unedited 2x screenshots for Chrome Web Store artwork, made by `tools/store-screenshots/`
 - `emnehjelper/media/` - Extension assets (icons, logos)
 - `emnehjelper/styles/` - One CSS file per content script
+- `tools/store-screenshots/` - Playwright script that captures the store screenshots on live NTNU pages (has its own `package.json`; never put tooling inside `emnehjelper/`, which is what gets zipped for the store)
 
 ## Styling Conventions
 - Primary brand color: `#090089` (from `style-guide.md`)
@@ -77,6 +79,11 @@ Check `cell.classList.contains("emnehjelper-info")` to avoid re-processing rows.
 - Load unpacked extension from `emnehjelper/` directory in Chrome/Edge developer mode
 - Test on NTNU course pages (e.g., `https://www.ntnu.edu/studies/courses/TDT4100`)
 - Test on study plans (e.g., MTDT program page linked in `about.html`)
+
+### Store Screenshots
+- Run `npm run shots` in `tools/store-screenshots/` to recapture `media/raw/` after visible UI changes; `tools/store-screenshots/README.md` explains each step
+- Karakterweb blocks headless Chromium, so the script checks Karakterweb links with plain Node requests and seeds the extension's link-validation cache. Never spoof the user agent or otherwise bypass the bot protection
+- The script depends on NTNU's study plan markup and on the extension's class names; the README lists them
 
 ### Release Process
 - Version bumping: Increment `manifest.json` version after multiple commits with changes
@@ -345,3 +352,4 @@ Examples of changes that should trigger an update:
 - Introducing new UI components or interaction patterns
 - Adding new external dependencies
 - Modifying the build/release process
+- Renaming extension class names, storage keys or service-worker functions that `tools/store-screenshots/capture.mjs` relies on (update the script and its README too)
