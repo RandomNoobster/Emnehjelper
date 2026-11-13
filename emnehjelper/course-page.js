@@ -313,8 +313,8 @@ function makePopUp(data, emnekode, response, startMinimized = false) {
   const servicesGrid = document.createElement("div");
   servicesGrid.className = "services-grid";
   
-  // emnr.no is not in host_permissions, so CORS blocks a HEAD request to it and every course would
-  // look missing; the emnr API response already says whether emnr has the course
+  // The emnr API response already says whether emnr has the course, so no HEAD request to emnr.no is
+  // needed: an error answer to that request (e.g. a rate limit) would show the course as missing
   servicesGrid.appendChild(createServiceButton(
     ENDPOINTS.EMNR(emnekode),
     chrome.runtime.getURL("media/emnr.ico"),

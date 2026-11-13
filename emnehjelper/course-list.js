@@ -422,8 +422,9 @@ function processCourseRow(row) {
         reviewsCell.appendChild(warningIndicator);
       }
 
-      // Create external links. emnr.no is not in host_permissions, so CORS blocks a HEAD request to it
-      // and every course would look missing; the emnr API response already says whether emnr has the course
+      // Create external links. The emnr link takes its state from the emnr API response, which already says
+      // whether emnr has the course, instead of a HEAD request per course to emnr.no: those went out in one
+      // burst per study plan, and an error answer marked the course as missing on every page using that URL
       const linksContainer = document.createElement("div");
       linksContainer.classList.add("emnehjelper-links");
       linksContainer.appendChild(createExternalLink(emnekode, "EMNR", !response.emnrNotFound));
