@@ -38,10 +38,6 @@ Du kan installere Emnehjelper på alle [Chromium-baserte](https://alternativeto.
 | ---------------------------------------------------------------------------- |
 | Dette bildet viser menyen som åpnes når du trykker på ikonet til utvidelsen. |
 
-| ![Animert GIF som demonstrerer at man kan dra rundt på popupen](/media/dragging_popup_demo.gif) |
-| ----------------------------------------------------------------------------------------------- |
-| Denne GIFen viser hvordan man kan dra rundt på popupen på emnesiden.                            |
-
 | ![Plakat for markedsføring av Emnehjelper](/media/poster.png) |
 | ------------------------------------------------------------- |
 | Dette er en plakat for å spre det gode ord 😉                 |
