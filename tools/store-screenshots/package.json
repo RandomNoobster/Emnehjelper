@@ -1,0 +1,13 @@
+{
+  "name": "emnehjelper-store-screenshots",
+  "private": true,
+  "type": "module",
+  "description": "Captures raw Chrome Web Store screenshots of Emnehjelper on live NTNU pages",
+  "scripts": {
+    "setup": "playwright install chromium",
+    "shots": "node capture.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.65.0"
+  }
+}
