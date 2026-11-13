@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Emnehjelper",
-    "version": "1.3.3",
+    "version": "1.3.4",
     "description": "Viser statistikk om karakterer, arbeidsmengde og vanskelighetsgrad rett i studieplanen din og på alle emnesidene til NTNU-emner.",
     "background": {
         "service_worker": "service-worker.js"
@@ -21,6 +21,18 @@
         {
             "matches": [
                 "https://www.ntnu.no/studier/emner/*",
+                "https://www.ntnu.edu/studies/courses/*",
+                "https://www.ntnu.no/studier/*",
+                "https://www.ntnu.edu/studies/*"
+            ],
+            "js": [
+                "config.js"
+            ],
+            "run_at": "document_start"
+        },
+        {
+            "matches": [
+                "https://www.ntnu.no/studier/emner/*",
                 "https://www.ntnu.edu/studies/courses/*"
             ],
             "js": [
@@ -35,12 +47,9 @@
         {
             "matches": [
                 "https://www.ntnu.no/studier/*",
-                "https://www.ntnu.edu/studies/*",
-                "https://www.ntnu.no/studier/emner#",
-                "https://www.ntnu.edu/studies/courses#"
+                "https://www.ntnu.edu/studies/*"
             ],
             "js": [
-                "config.js",
                 "utils.js",
                 "course-list.js"
             ],
@@ -51,7 +60,7 @@
         }
     ],
     "web_accessible_resources": [{
-        "matches": ["<all_urls>"],
+        "matches": ["https://www.ntnu.no/*", "https://www.ntnu.edu/*"],
         "resources": ["/media/e-h128.png", "/media/emnr.ico", "/media/karakterweb.ico", "/media/karakterernet.ico", "/media/ntnu.ico"]
     }],
     "action": {

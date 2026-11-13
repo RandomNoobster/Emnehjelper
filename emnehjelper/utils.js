@@ -39,8 +39,7 @@ function calculateKarakterwebStats(gradesData, yearsBack = null, courseCode = 'u
 
   // Find the most recent entry to establish cutoff point
   const mostRecent = sortedData[0];
-  const mostRecentValue = getSemesterSortValue(mostRecent.Semester, parseInt(mostRecent.Årstall));
-  
+
   // Calculate cutoff based on years back from most recent exam (not current date)
   let cutoffValue = 0;
   if (yearsBack !== null) {
@@ -154,10 +153,10 @@ function calculateKarakterwebStats(gradesData, yearsBack = null, courseCode = 'u
 }
 
 /**
- * Get the most recent single exam data
+ * Get the data of the most recent exam that has results
  * @param {Array} gradesData - Array of grade objects from karakterweb
  * @param {string} courseCode - Course code for logging
- * @returns {Object} - Stats for the most recent exam
+ * @returns {Object} - Stats for the most recent exam with candidates
  */
 function getMostRecentStats(gradesData, courseCode = 'unknown') {
   if (!gradesData || gradesData.length === 0) {
@@ -178,7 +177,14 @@ function getMostRecentStats(gradesData, courseCode = 'unknown') {
     return bValue - aValue;
   });
 
-  // Use only the most recent entry
+  // Use only the most recent entry, skipping semesters without results (e.g. an exam listed before
+  // its grades are published), which would otherwise hide the older data
+  for (const entry of sortedData) {
+    const stats = calculateKarakterwebStats([entry], null, courseCode);
+    if (stats.total_candidates > 0) {
+      return stats;
+    }
+  }
   return calculateKarakterwebStats([sortedData[0]], null, courseCode);
 }
 
@@ -286,15 +292,8 @@ function mergeData(emnrData, karakterwebData) {
   const gradesData = karakterwebData.grades?.data || [];
   const courseCode = emnrData.course_code || 'unknown';
   
-  const stats_1year = calculateKarakterwebStats(gradesData, 1, courseCode);
   const stats_3years = calculateKarakterwebStats(gradesData, 3, courseCode);
-  const stats_5years = calculateKarakterwebStats(gradesData, 5, courseCode);
   const stats_alltime = calculateKarakterwebStats(gradesData, null, courseCode);
-
-  // Debug logging
-  if (gradesData.length > 0) {
-    console.log(`[${courseCode}] mergeData Scale: ${gradesData[0].Karakterskala}, is_graded: ${stats_alltime.is_graded}, avg_grade: ${stats_alltime.average_grade}, letter: ${stats_alltime.average_grade_letter}`);
-  }
 
   // Use karakterweb data if available, otherwise fall back to emnr
   let primaryStats;
@@ -354,11 +353,42 @@ function mergeData(emnrData, karakterwebData) {
     emnr_review_count: emnrData.review_count,
     karakterweb_review_count: karakterWebReviewCount,
     // Time-based statistics from karakterweb
-    stats_1year,
     stats_3years,
-    stats_5years,
     stats_alltime,
     grade_data_source: dataSource, // Track which source was used for grades
     time_period_label: timePeriodLabel, // Track which time period was used ('siste 3 år' or 'siste eksamen')
   };
+}
+
+// Helpers shared by the content scripts course-page.js and course-list.js. utils.js is evaluated twice on
+// course pages (both manifest entries match), so keep top-level declarations to functions: a const would throw.
+
+/**
+ * Sources whose data could not be fetched. A service without data for the course (HTTP 404) has not failed.
+ * @param {Object} response - get-karakter-data response from the service worker
+ * @returns {string[]} - Subset of ["emnr", "karakterweb"]
+ */
+function getFailedSources(response) {
+  const failedSources = [];
+  if (response.emnrData === null && !response.emnrNotFound) {
+    failedSources.push("emnr");
+  }
+  if (response.karakterwebData === null && !response.karakterwebNotFound) {
+    failedSources.push("karakterweb");
+  }
+  return failedSources;
+}
+
+// Ask the service worker whether a link has data for the course
+async function validateLink(url) {
+  try {
+    const response = await chrome.runtime.sendMessage({
+      contentScriptQuery: "validate-link",
+      url: url,
+    });
+    return response.isValid;
+  } catch (error) {
+    console.error("Error validating link:", error);
+    return true; // Assume valid if validation fails
+  }
 }
