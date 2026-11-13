@@ -62,11 +62,13 @@ Check `cell.classList.contains("emnehjelper-info")` to avoid re-processing rows.
 
 ## File Organization
 - `emnehjelper/` - Extension source code
-- `media/` - Source graphics (.pdn files for Paint.NET)
+- `media/` - Promotional graphics (the poster, with its .pdn source for Paint.NET)
 - `media/raw/` - Unedited 2x screenshots for Chrome Web Store artwork, made by `tools/store-screenshots/`
+- `media/store/` - Finished Chrome Web Store screenshots (1280x800) and small promo tile (440x280), made by `tools/store-art/` from `media/raw/`; the README shows them too
 - `emnehjelper/media/` - Extension assets (icons, logos)
 - `emnehjelper/styles/` - One CSS file per content script
 - `tools/store-screenshots/` - Playwright script that captures the store screenshots on live NTNU pages (has its own `package.json`; never put tooling inside `emnehjelper/`, which is what gets zipped for the store)
+- `tools/store-art/` - Playwright script that adds the background, headlines and frames to `media/raw/` and writes `media/store/` (has its own `package.json`)
 
 ## Styling Conventions
 - Primary brand color: `#090089` (from `style-guide.md`)
@@ -84,6 +86,8 @@ Check `cell.classList.contains("emnehjelper-info")` to avoid re-processing rows.
 - Run `npm run shots` in `tools/store-screenshots/` to recapture `media/raw/` after visible UI changes; `tools/store-screenshots/README.md` explains each step
 - karakterweb.no's bot protection blocks headless Chromium, but the extension sends it no requests (the Karakterweb link takes its state from the cached Karakterweb data), so the script needs no workaround. Never spoof the user agent or otherwise bypass the bot protection
 - The script depends on NTNU's study plan markup and on the extension's class names; the README lists them
+- Then run `npm run build` in `tools/store-art/` to make the finished images in `media/store/`. The headlines are in `SCENES` in `tools/store-art/build.mjs` and are written in Norwegian, in the same plain style as the README. The crops of each capture are in `R` in `tools/store-art/lib.mjs`; check them if the captures change
+- The store needs exact sizes and 24-bit PNG without alpha; `build.mjs` already writes that format
 
 ### Release Process
 - Version bumping: Increment `manifest.json` version after multiple commits with changes
