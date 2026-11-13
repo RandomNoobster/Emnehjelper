@@ -1,6 +1,6 @@
 # Store screenshots
 
-Captures raw, unedited screenshots of Emnehjelper running on live NTNU pages, for Chrome Web Store artwork. Captions, arrows and layout are added afterwards in an image editor; this tool only produces the plain page captures.
+Captures raw, unedited screenshots of Emnehjelper running on live NTNU pages, for Chrome Web Store artwork. This tool only produces the plain page captures. `tools/store-art/` then adds the background, headlines and frames and writes the finished images to `media/store/`.
 
 It loads the unpacked extension from `emnehjelper/` into Chromium with Playwright, waits until every value the extension shows has loaded, and saves PNGs to `media/raw/`.
 

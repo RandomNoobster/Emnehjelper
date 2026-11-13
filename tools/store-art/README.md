@@ -6,7 +6,7 @@ Alle bildene av utvidelsen er ekte skjermbilder. Verktøyet legger bare til bakg
 
 ## Skjermbilder som trengs
 
-Verktøyet leser skjermbildene fra `media/raw/`. De er tatt med Playwright i et 1280x800-vindu med `deviceScaleFactor: 2`, mens utvidelsen var lastet inn:
+Verktøyet leser skjermbildene fra `media/raw/`. De lages av `tools/store-screenshots/` med `npm run shots`, og README-en der forklarer hvordan. Disse filene brukes:
 
 | Fil | Innhold |
 | --- | --- |
@@ -16,7 +16,7 @@ Verktøyet leser skjermbildene fra `media/raw/`. De er tatt med Playwright i et 
 | `panel-light.png` og `panel-dark.png` | Bare panelet, i lys og mørk modus |
 | `about-popup.png` | Menyen som åpnes når man trykker på ikonet, 320 px bred |
 
-Hvis NTNU endrer sidene sine, må utsnittene i `R` i `lib.mjs` kanskje justeres.
+Hvis NTNU endrer sidene sine eller skjermbildene blir tatt på nytt, må utsnittene i `R` i `lib.mjs` kanskje justeres.
 
 ## Slik lager du bildene
 

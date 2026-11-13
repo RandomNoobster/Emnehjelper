@@ -21,6 +21,7 @@ const RAW_FILES = ["study-plan", "study-plan-without", "course-page-light", "pan
 const missing = RAW_FILES.filter((f) => !fs.existsSync(path.join(RAW_DIR, `${f}.png`)));
 if (missing.length) {
   console.error(`Missing captures in ${RAW_DIR}: ${missing.map((f) => f + ".png").join(", ")}`);
+  console.error("Run `npm run shots` in tools/store-screenshots/ to capture them.");
   process.exit(1);
 }
 setRawDir(RAW_DIR);
