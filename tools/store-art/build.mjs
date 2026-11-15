@@ -16,7 +16,8 @@ const arg = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}
 const RAW_DIR = path.resolve(arg("raw", path.join(REPO, "media/raw")));
 const OUT_DIR = path.resolve(arg("out", path.join(REPO, "media/store")));
 
-// Full-page captures are 2x captures of a 1280x800 viewport; the panel and popup are element captures
+// Full-page captures are of a 1280x800 viewport (2x by default; `--scale` in tools/store-screenshots changes that);
+// the panel and popup are element captures. Everything is sized by CSS px, so any capture scale works
 const RAW_FILES = ["study-plan", "study-plan-without", "course-page-light", "panel-light", "panel-dark", "about-popup"];
 const missing = RAW_FILES.filter((f) => !fs.existsSync(path.join(RAW_DIR, `${f}.png`)));
 if (missing.length) {
