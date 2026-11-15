@@ -38,15 +38,16 @@ const T = {
   sub: "Emnehjelper viser vanskelighetsgrad, arbeidsmengde og snittkarakter rett i studieplanen din.",
   intro: "Emnehjelper er en nettleser-utvidelse som gjør det enklere å velge emner ved NTNU. Den viser vanskelighetsgrad, arbeidsmengde og snittkarakter rett i studieplanen din og på alle emnesider.",
   planTitle: "Studieplaner",
-  plan: "Hvert emne i studieplanen får merker for vanskelighetsgrad, arbeidsmengde og snittkarakter. Da ser du hvilke semestre som blir tunge, og hvilke valgbare emner som gir de <strong>beste karakterene</strong> og <strong>minst arbeid</strong>.",
+  // &shy; marks where long compound words may be split across lines
+  plan: "Hvert emne i studie&shy;planen får merker for vanskelighets&shy;grad, arbeids&shy;mengde og snitt&shy;karakter. Da ser du hvilke semestre som blir tunge, og hvilke valg&shy;bare emner som gir de <strong>beste karakterene</strong> og <strong>minst arbeid</strong>.",
   courseTitle: "Emnesider",
-  course: "På emnesiden ser du beståttprosent, arbeidsmengde og snittkarakter. Det er også lenker til emnr, karakterweb og karakterer.net, slik at du slipper å søke det opp.",
-  data: "Statistikken er et vektet gjennomsnitt fra emnr og karakterweb.",
+  course: "På emne&shy;siden ser du bestått&shy;prosent, arbeids&shy;mengde og snitt&shy;karakter. Det er også lenker til emnr, karakterweb og karakterer.net, slik at du slipper å søke det opp.",
+  data: "Statistikken er et vektet gjennom&shy;snitt fra emnr og karakterweb.",
   stepsTitle: "Slik kommer du i gang",
   steps: [
     "Søk etter «Emnehjelper» i Chrome Web Store på PC-en, eller skann QR-koden.",
-    "Legg utvidelsen til i nettleseren.",
-    "Gå til studieplanen din eller en emneside på ntnu.no.",
+    "Legg utvidelsen til i nett&shy;leseren.",
+    "Gå til studie&shy;planen din eller en emne&shy;side på ntnu.no.",
   ],
   browsers: "Utvidelsen er gratis og fungerer i Chrome, Edge, Opera, Brave og Vivaldi på PC og Mac.",
   scanTitle: "Skann koden for å laste ned",
@@ -184,6 +185,7 @@ body { font-family:'Plus Jakarta Sans',sans-serif; color:${INK}; }
 .t { font-weight:800; line-height:1.02; letter-spacing:-.035em; text-wrap:balance; }
 .s { color:${MUTED}; font-weight:500; line-height:1.45; text-wrap:pretty; }
 .s strong { color:${INK}; font-weight:600; }
+.fit { font-size:calc(var(--fs) * 1mm); line-height:1.55; }
 .card { background:#fff; }
 .num { display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:#1a0fb3; color:#fff; font-weight:800; flex-shrink:0; }
 `;
@@ -206,26 +208,55 @@ const A3 = () =>
   edgeFade(297, 420, 17);
 
 // A4 lies on a table and is read up close: it explains more and has install steps
+// A4 lies on a table and is read up close: it explains more and has install steps.
+// Below the study plan there are two columns that end on the same line: the whole panel on the right,
+// and on the left the text with the QR card under it. The text size is picked by fitText() so the
+// text exactly fills the space above the card.
+const A4_BOTTOM = 283;                 // 14 mm from the edge, just inside the white edge fade
+const PANEL_TOP = 136;
+const CAPTION_H = 3.2 * 1.45, CAPTION_GAP = 2.4;
+const PANEL_W = (A4_BOTTOM - CAPTION_H - CAPTION_GAP - PANEL_TOP) / (882 / 320);
+const PANEL_X = 194 - PANEL_W;
+const TEXT_TOP = 144, TEXT_W = PANEL_X - 9 - 16;
+
 const A4 = () =>
   header(10, 6.4, 16) +
   abs(16, 36, `<h1 class="t" style="font-size:15mm;width:178mm">${T.title}</h1>`) +
   abs(16, 55, `<p class="s" style="font-size:4.4mm;width:176mm">${T.intro}</p>`) +
   abs(16, 78.5, browser({ r: R.planTop, widthMm: 178, extra: `box-shadow:${shadow(.5)}` })) +
   abs(16, 134.7, `<p class="s" style="font-size:3.2mm;font-style:italic">${T.planCaption}</p>`) +
-  // The text column starts level with the panel and fills the height beside it
-  abs(16, 145, `<div style="width:110mm">
-      <h2 class="t" style="font-size:7mm">${T.planTitle}</h2><p class="s" style="font-size:4.35mm;line-height:1.55;margin-top:2mm">${T.plan}</p>
-      <h2 class="t" style="font-size:7mm;margin-top:7mm">${T.courseTitle}</h2><p class="s" style="font-size:4.35mm;line-height:1.55;margin-top:2mm">${T.course}</p>
-      <p class="s" style="font-size:4.35mm;line-height:1.55;margin-top:4mm">${T.data}</p></div>`) +
-  abs(139, 145, panel({ width: 55, cropPx: 556, extra: `box-shadow:${shadow(.5)}` })) +
-  abs(139, 242.8, `<p class="s" style="font-size:3.2mm;font-style:italic;white-space:nowrap">${T.panelCaption}</p>`) +
-  abs(16, 251, `<div class="card" style="box-shadow:${shadow(.5)};width:178mm;height:32mm;border-radius:5mm;display:flex;align-items:center;gap:6mm;padding:0 5mm 0 4mm">
-      ${qr(25)}
-      <div style="flex:1"><div class="t" style="font-size:4.6mm">${T.stepsTitle}</div>
-        ${T.steps.map((s, i) => `<div style="display:flex;gap:2.2mm;align-items:center;margin-top:1.3mm"><span class="num" style="width:4.4mm;height:4.4mm;font-size:2.6mm">${i + 1}</span><span class="s" style="font-size:3.3mm;line-height:1.3;color:${INK}">${s}</span></div>`).join("")}
-        <p class="s" style="font-size:3mm;margin-top:1.5mm">${T.browsers}</p>
-      </div></div>`) +
+  abs(16, TEXT_TOP, `<div id="fit-col" data-gap-mm="5" style="width:${TEXT_W}mm;height:${A4_BOTTOM - TEXT_TOP}mm;display:flex;flex-direction:column;justify-content:space-between">
+      <div id="fit-text" style="--fs:4.2">
+        <h2 class="t" style="font-size:calc(var(--fs) * 1.62mm)">${T.planTitle}</h2>
+        <p class="s fit" style="margin-top:2mm">${T.plan}</p>
+        <h2 class="t" style="font-size:calc(var(--fs) * 1.62mm);margin-top:calc(var(--fs) * 1.5mm)">${T.courseTitle}</h2>
+        <p class="s fit" style="margin-top:2mm">${T.course}</p>
+        <p class="s fit" style="margin-top:calc(var(--fs) * .8mm)">${T.data}</p></div>
+      <div id="fit-card" class="card" style="box-shadow:${shadow(.5)};border-radius:5mm;display:flex;align-items:center;gap:5mm;padding:4mm 4mm 4mm 4mm">
+        ${qr(28)}
+        <div style="flex:1;min-width:0"><div class="t" style="font-size:4.6mm">${T.stepsTitle}</div>
+          ${T.steps.map((s, i) => `<div style="display:flex;gap:2.2mm;align-items:flex-start;margin-top:1.6mm"><span class="num" style="width:4.4mm;height:4.4mm;font-size:2.6mm">${i + 1}</span><span class="s" style="font-size:3.3mm;line-height:1.33;color:${INK}">${s}</span></div>`).join("")}
+          <p class="s" style="font-size:3mm;margin-top:2mm">${T.browsers}</p>
+        </div></div></div>`) +
+  abs(PANEL_X, PANEL_TOP, panel({ width: PANEL_W, cropPx: 882, extra: `box-shadow:${shadow(.5)}` })) +
+  // The caption is a little wider than the panel, so it is centred under it
+  abs(PANEL_X, A4_BOTTOM - CAPTION_H, `<div style="width:${PANEL_W}mm;display:flex;justify-content:center"><p class="s" style="font-size:3.2mm;font-style:italic;white-space:nowrap">${T.panelCaption}</p></div>`) +
   edgeFade(210, 297, 13);
+
+// Runs in the page: the largest text size (in mm) at which the text and the card fit in the column
+const FIT_SCRIPT = `<script>
+window.fitText = () => {
+  const col = document.getElementById("fit-col");
+  if (!col) return null;
+  const text = document.getElementById("fit-text"), card = document.getElementById("fit-card");
+  const gap = parseFloat(col.dataset.gapMm) * 96 / 25.4;
+  const fits = (fs) => { text.style.setProperty("--fs", fs); return text.offsetHeight + gap + card.offsetHeight <= col.clientHeight; };
+  let lo = 3.4, hi = 5.4;
+  for (let i = 0; i < 24; i++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; }
+  text.style.setProperty("--fs", lo);
+  return lo;
+};
+</script>`;
 
 const POSTERS = [
   { file: "emnehjelper-plakat-A3", w: 297, h: 420, body: A3 },
@@ -242,7 +273,7 @@ const page = ({ w, h, body }, faces) => `<!doctype html><html lang="no"><head><m
   h1,h2,p{margin:0}
   ${BROWSER_CSS}
   ${CSS}
-  </style></head><body>${body()}</body></html>`;
+  </style>${FIT_SCRIPT}</head><body>${body()}</body></html>`;
 
 // ---------- Rendering ----------
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "poster-"));
@@ -260,10 +291,11 @@ for (const poster of POSTERS) {
   fs.writeFileSync(htmlPath, page(poster, faces));
   await tab.goto(fileUrl(htmlPath));
   await tab.evaluate(() => document.fonts.ready);
+  const textSize = await tab.evaluate(() => window.fitText());
   await tab.waitForLoadState("networkidle");
   const pdfPath = path.join(OUT_DIR, `${poster.file}.pdf`);
   await tab.pdf({ path: pdfPath, width: `${poster.w}mm`, height: `${poster.h}mm`, printBackground: true, preferCSSPageSize: true });
-  console.log(`  ${poster.file}.pdf (${poster.w}x${poster.h} mm)`);
+  console.log(`  ${poster.file}.pdf (${poster.w}x${poster.h} mm)${textSize ? `, text size ${textSize.toFixed(2)} mm` : ""}`);
 }
 await browserApp.close();
 fs.rmSync(tmp, { recursive: true, force: true });

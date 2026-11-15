@@ -40,4 +40,4 @@ Da blir studieplanen skrevet ut med 352 dpi på A3. Det trengs ingen andre endri
 
 ## Tekst og plassering
 
-Tekstene står i `T` øverst i `build.mjs`. Hvis du flytter noe, må alt innhold være mer enn 13 mm (A4) og 17 mm (A3) fra kanten, ellers havner det under den hvite kanten.
+Tekstene står i `T` øverst i `build.mjs`. På A4 velger verktøyet selv tekststørrelsen i kolonnen ved siden av panelet, slik at teksten fyller plassen over QR-kortet akkurat. Hvis du endrer teksten, blir størrelsen justert automatisk. `&shy;` i tekstene viser hvor lange sammensatte ord kan deles over to linjer. Hvis du flytter noe, må alt innhold være mer enn 13 mm (A4) og 17 mm (A3) fra kanten, ellers havner det under den hvite kanten.
