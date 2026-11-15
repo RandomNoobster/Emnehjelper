@@ -65,7 +65,7 @@ Check `cell.classList.contains("emnehjelper-info")` to avoid re-processing rows.
 - `media/` - Promotional graphics (the poster, with its .pdn source for Paint.NET)
 - `media/raw/` - Unedited screenshots for the Chrome Web Store artwork and the posters, made by `tools/store-screenshots/` (2x by default; `--scale 4` for sharper prints)
 - `media/store/` - Finished Chrome Web Store screenshots (1280x800) and small promo tile (440x280), made by `tools/store-art/` from `media/raw/`; the README shows them too
-- `media/posters/` - Print-ready campus posters as PDF (A3 for walls, A4 for tables), made by `tools/poster/` from `media/raw/`
+- `media/posters/` - Print-ready campus posters as PDF (A3 for walls, A4 for tables), made by `tools/poster/` from `media/raw/`, plus a JPG preview of each that the README shows
 - `emnehjelper/media/` - Extension assets (icons, logos)
 - `emnehjelper/styles/` - One CSS file per content script
 - `tools/store-screenshots/` - Playwright script that captures the store screenshots on live NTNU pages (has its own `package.json`; never put tooling inside `emnehjelper/`, which is what gets zipped for the store)

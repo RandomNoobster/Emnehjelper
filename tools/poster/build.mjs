@@ -284,18 +284,25 @@ qrSvg = await QR.toString(STORE_URL, { type: "svg", margin: 0, errorCorrectionLe
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 console.log(`Writing to ${OUT_DIR}`);
+// The README shows a JPG preview of each poster, since GitHub can't show a PDF inline
+const PREVIEW_WIDTH_PX = 1200;
 const browserApp = await chromium.launch();
-const tab = await browserApp.newPage();
 for (const poster of POSTERS) {
   const htmlPath = path.join(tmp, `${poster.file}.html`);
   fs.writeFileSync(htmlPath, page(poster, faces));
+  const cssW = poster.w * 96 / 25.4, cssH = poster.h * 96 / 25.4;
+  const tab = await browserApp.newPage({
+    viewport: { width: Math.ceil(cssW), height: Math.ceil(cssH) },
+    deviceScaleFactor: PREVIEW_WIDTH_PX / cssW,
+  });
   await tab.goto(fileUrl(htmlPath));
   await tab.evaluate(() => document.fonts.ready);
   const textSize = await tab.evaluate(() => window.fitText());
   await tab.waitForLoadState("networkidle");
-  const pdfPath = path.join(OUT_DIR, `${poster.file}.pdf`);
-  await tab.pdf({ path: pdfPath, width: `${poster.w}mm`, height: `${poster.h}mm`, printBackground: true, preferCSSPageSize: true });
-  console.log(`  ${poster.file}.pdf (${poster.w}x${poster.h} mm)${textSize ? `, text size ${textSize.toFixed(2)} mm` : ""}`);
+  await tab.pdf({ path: path.join(OUT_DIR, `${poster.file}.pdf`), width: `${poster.w}mm`, height: `${poster.h}mm`, printBackground: true, preferCSSPageSize: true });
+  await tab.screenshot({ path: path.join(OUT_DIR, `${poster.file}.jpg`), type: "jpeg", quality: 85, clip: { x: 0, y: 0, width: cssW, height: cssH } });
+  await tab.close();
+  console.log(`  ${poster.file}.pdf and .jpg (${poster.w}x${poster.h} mm)${textSize ? `, text size ${textSize.toFixed(2)} mm` : ""}`);
 }
 await browserApp.close();
 fs.rmSync(tmp, { recursive: true, force: true });

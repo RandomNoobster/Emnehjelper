@@ -7,6 +7,8 @@ Dette verktøyet lager plakatene for Emnehjelper som PDF-filer som er klare til 
 | `emnehjelper-plakat-A3.pdf` | Henges opp på veggen. Den har stor overskrift, ett bilde og en stor QR-kode, slik at den kan leses fra et par meters avstand. |
 | `emnehjelper-plakat-A4.pdf` | Legges på bordene. Den forklarer mer om hva utvidelsen gjør, og viser hvordan man installerer den. |
 
+Verktøyet lagrer også et JPG-bilde av hver plakat, som README-en viser. GitHub kan ikke vise PDF-filer direkte.
+
 Plakatene har samme stil som bildene i Chrome Web Store. Alle bildene av utvidelsen er ekte skjermbilder fra `media/raw/`, og QR-koden går til Emnehjelper i Chrome Web Store.
 
 ## Utskrift

@@ -38,6 +38,10 @@ Du kan installere Emnehjelper på alle [Chromium-baserte](https://alternativeto.
 | ---------------------------------------------------------------------------- |
 | Dette bildet viser menyen som åpnes når du trykker på ikonet til utvidelsen. |
 
-| ![Plakat for markedsføring av Emnehjelper](/media/poster.png) |
-| ------------------------------------------------------------- |
-| Dette er en plakat for å spre det gode ord 😉                 |
+| [![Plakat i A3 for markedsføring av Emnehjelper](/media/posters/emnehjelper-plakat-A3.jpg)](/media/posters/emnehjelper-plakat-A3.pdf) |
+| ------------------------------------------------------------------------------------------------------------------------------------- |
+| Dette er en plakat i A3 for å spre det gode ord 😉 Den er laget for å henges opp på veggen. Trykk på bildet for å åpne PDF-filen.      |
+
+| [![Plakat i A4 for markedsføring av Emnehjelper](/media/posters/emnehjelper-plakat-A4.jpg)](/media/posters/emnehjelper-plakat-A4.pdf)              |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dette er den samme plakaten i A4. Den er laget for å legges på bordene, og forklarer litt mer om utvidelsen. Trykk på bildet for å åpne PDF-filen. |
