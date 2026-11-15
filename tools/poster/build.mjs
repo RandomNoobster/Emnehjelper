@@ -48,7 +48,7 @@ const T = {
     "Legg utvidelsen til i nettleseren.",
     "Gå til studieplanen din eller en emneside på ntnu.no.",
   ],
-  browsers: "Gratis. Fungerer i Chrome, Edge, Opera, Brave og Vivaldi på PC og Mac.",
+  browsers: "Utvidelsen er gratis og fungerer i Chrome, Edge, Opera, Brave og Vivaldi på PC og Mac.",
   scanTitle: "Skann koden for å laste ned",
   scan: "Du kan også søke etter «Emnehjelper» i Chrome Web Store på PC-en din.",
   planCaption: "Studieplanen for 3. år datateknologi med Emnehjelper.",
