@@ -49,8 +49,8 @@ const T = {
   browsers: "Gratis. Fungerer i Chrome, Edge, Opera, Brave og Vivaldi på PC og Mac.",
   scanTitle: "Skann koden for å laste ned",
   scan: "Du kan også søke etter «Emnehjelper» i Chrome Web Store på PC-en din.",
-  fig1: "Figur 1: Studieplanen for 3. år datateknologi med Emnehjelper.",
-  fig2: "Figur 2: Panelet på emnesiden til TDT4100.",
+  planCaption: "Studieplanen for 3. år datateknologi med Emnehjelper.",
+  panelCaption: "Panelet på emnesiden til TDT4100.",
 };
 
 // ---------- Fonts ----------
@@ -167,13 +167,13 @@ const A4 = () =>
   abs(16, 36, `<h1 class="t" style="font-size:15mm;width:178mm">${T.title}</h1>`) +
   abs(16, 56, `<p class="s" style="font-size:4.4mm;width:176mm">${T.intro}</p>`) +
   abs(16, 82, browser({ r: R.planTop, widthMm: 178, extra: `box-shadow:${shadow(.5)}` })) +
-  abs(16, 139, `<p class="s" style="font-size:3.2mm;font-style:italic">${T.fig1}</p>`) +
+  abs(16, 139, `<p class="s" style="font-size:3.2mm;font-style:italic">${T.planCaption}</p>`) +
   abs(16, 154, `<div style="width:116mm">
       <h2 class="t" style="font-size:6mm">${T.planTitle}</h2><p class="s" style="font-size:3.75mm;margin-top:1.5mm">${T.plan}</p>
       <h2 class="t" style="font-size:6mm;margin-top:6mm">${T.courseTitle}</h2><p class="s" style="font-size:3.75mm;margin-top:1.5mm">${T.course}</p>
       <p class="s" style="font-size:3.75mm;margin-top:3mm">${T.data}</p></div>`) +
   abs(144, 147, panel({ width: 50, cropPx: 562, extra: `box-shadow:${shadow(.5)}` })) +
-  abs(144, 236.5, `<p class="s" style="font-size:3.2mm;font-style:italic;width:50mm">${T.fig2}</p>`) +
+  abs(144, 236.5, `<p class="s" style="font-size:3.2mm;font-style:italic;width:50mm">${T.panelCaption}</p>`) +
   abs(16, 249, `<div class="card" style="box-shadow:${shadow(.5)};width:178mm;height:34mm;border-radius:5mm;display:flex;align-items:center;gap:6mm;padding:0 5mm 0 4mm">
       ${qr(26)}
       <div style="flex:1"><div class="t" style="font-size:4.6mm">${T.stepsTitle}</div>
