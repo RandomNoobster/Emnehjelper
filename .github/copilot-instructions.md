@@ -62,7 +62,7 @@ Check `cell.classList.contains("emnehjelper-info")` to avoid re-processing rows.
 
 ## File Organization
 - `emnehjelper/` - Extension source code
-- `media/` - Promotional graphics (the poster, with its .pdn source for Paint.NET)
+- `media/` - Promotional graphics, in the subfolders below
 - `media/raw/` - Unedited screenshots for the Chrome Web Store artwork and the posters, made by `tools/store-screenshots/` (2x by default; `--scale 4` for sharper prints)
 - `media/store/` - Finished Chrome Web Store screenshots (1280x800) and small promo tile (440x280), made by `tools/store-art/` from `media/raw/`; the README shows them too
 - `media/posters/` - Print-ready campus posters as PDF (A3 for walls, A4 for tables), made by `tools/poster/` from `media/raw/`, plus a JPG preview of each that the README shows
