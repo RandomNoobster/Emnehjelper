@@ -10,7 +10,6 @@ const require = createRequire(import.meta.url);
 const { chromium } = require("playwright");
 const QR = require("qrcode");
 const { decompress } = require("wawoff2");
-const { PNG } = require("pngjs");
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 function arg(name, fallback) {
@@ -35,7 +34,7 @@ if (missing.length) {
 }
 
 const STORE_URL = "https://chromewebstore.google.com/detail/emnehjelper/ocfgbjjagbojipkdhbloaegpigmkgiaf";
-const LOGO_SRC = path.join(REPO, "emnehjelper/media/e-h1024.png");
+const LOGO = fileUrl(path.join(REPO, "emnehjelper/media/e-h1024.png"));
 const RAW = (name) => fileUrl(path.join(RAW_DIR, `${name}.png`));
 const PLAN_URL = "ntnu.no/studier/mtdt/studieretninger-og-hovedprofiler";
 const PREVIEW_WIDTH_PX = 1200; // Width of the JPG previews the README shows, since GitHub can't show a PDF inline
@@ -96,39 +95,6 @@ async function prepareFontFaces(dir) {
   return faces.join("\n");
 }
 
-// ---------- Logo ----------
-// The logo PNG has a light rim, 3-4 px wide, around its edge. On a tinted background that rim makes the
-// logo look cut out, so the outer pixels are recoloured navy (keeping their transparency) before use.
-// The letters are far from the edge, so they are not touched.
-function cleanLogo(src, dest, rim = 6) {
-  const png = PNG.sync.read(fs.readFileSync(src));
-  const { width: w, height: h, data } = png;
-  // Distance (in pixels, up to `rim`) from the nearest transparent pixel or image border
-  const dist = new Int16Array(w * h).fill(rim + 1);
-  const queue = [];
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const i = y * w + x;
-      if (data[i * 4 + 3] === 0 || x === 0 || y === 0 || x === w - 1 || y === h - 1) { dist[i] = 0; queue.push(i); }
-    }
-  }
-  for (let q = 0; q < queue.length; q++) {
-    const i = queue[q];
-    if (dist[i] >= rim) continue;
-    const x = i % w, y = (i - x) / w;
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const X = x + dx, Y = y + dy;
-      if (X < 0 || Y < 0 || X >= w || Y >= h) continue;
-      const j = Y * w + X;
-      if (dist[j] > dist[i] + 1) { dist[j] = dist[i] + 1; queue.push(j); }
-    }
-  }
-  for (let i = 0; i < w * h; i++) {
-    if (dist[i] <= rim && data[i * 4 + 3] > 0) { data[i * 4] = 0x09; data[i * 4 + 1] = 0x00; data[i * 4 + 2] = 0x89; }
-  }
-  fs.writeFileSync(dest, PNG.sync.write(png));
-}
-
 // Chromium stamps each PDF with the current time, so every build changed both PDFs even when nothing
 // else did. A fixed date keeps rebuilds byte-identical. Only the 14 digits are replaced, so the
 // length stays the same and the PDF's byte offsets stay valid.
@@ -138,12 +104,10 @@ function stabilizePdf(file) {
   fs.writeFileSync(file, Buffer.from(fixed, "latin1"));
 }
 
-// ---------- Assets ----------
+// ---------- Fonts and QR code ----------
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "poster-"));
 process.on("exit", () => fs.rmSync(tmp, { recursive: true, force: true })); // also runs when the build fails
 const faces = await prepareFontFaces(tmp);
-cleanLogo(LOGO_SRC, path.join(tmp, "logo.png"));
-const LOGO = fileUrl(path.join(tmp, "logo.png"));
 // Vector QR code. The light colour is transparent, so it needs a white card behind it
 const QR_SVG = await QR.toString(STORE_URL, { type: "svg", margin: 0, errorCorrectionLevel: "M", color: { dark: "#0d0b33", light: "#00000000" } });
 

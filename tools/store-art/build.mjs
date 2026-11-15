@@ -57,7 +57,7 @@ body { font-family: 'Plus Jakarta Sans Variable', sans-serif; color:${INK}; }
 
 const head = (sc, { x, y, w, center = false }) =>
   abs(x, y, `<div class="${center ? "center" : ""}" style="width:${w}px">
-    <span class="eb">${logo(18, "border-radius:5px")}${sc.eyebrow}</span>
+    <span class="eb">${logo(18)}${sc.eyebrow}</span>
     <h1 class="t">${sc.title}</h1>
     <p class="s" style="max-width:${center ? 760 : w}px">${sc.sub}</p></div>`);
 
@@ -81,7 +81,7 @@ const tile = () => ({
   bg: "radial-gradient(360px 260px at 100% 0%, #dcdfff 0%, transparent 65%), #f6f7fb",
   css: CSS,
   body:
-    abs(32, 34, logo(64, "border-radius:16px;box-shadow:0 8px 20px rgba(9,0,137,.25)")) +
+    abs(32, 34, logo(64, "filter:drop-shadow(0 8px 10px rgba(9,0,137,.25))")) +
     abs(32, 118, `<div style="font-weight:800;font-size:44px;letter-spacing:-.04em;line-height:1">Emnehjelper</div>
       <div style="font-size:16px;color:#55566f;font-weight:600;margin-top:10px;width:250px;line-height:1.35">${TILE_TAGLINE}</div>`) +
     abs(296, 30, panel({ zoom: 0.5, style: "box-shadow:0 16px 36px -6px rgba(13,11,51,.3), 0 0 0 1px rgba(13,11,51,.06)" })),

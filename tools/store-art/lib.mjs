@@ -46,7 +46,7 @@ const BROWSER_CSS = `
 .bw-url { flex:1; height:28px; background:#fff; border-radius:14px; display:flex; align-items:center; gap:8px; padding:0 14px; font-size:13px; color:#5f6368; }
 .bw-url svg { width:12px; height:12px; opacity:.6; }
 .bw-ext { width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; }
-.bw-ext img { width:18px; height:18px; border-radius:4px; }
+.bw-ext img { width:18px; height:18px; }
 .bw-ext.on { background:#dfe3ff; box-shadow: inset 0 0 0 1.5px #9aa3ff; }
 .bw-body { flex:1; position:relative; overflow:hidden; }
 `;
@@ -92,7 +92,7 @@ export const withShot = (scale = 1) => shot("study-plan", { ...R.planWith, scale
 export function card({ label, inner, w, style = "", labelStyle = "", logoDot = false }) {
   return `<div style="width:${w}px;background:#fff;border-radius:14px;overflow:hidden;${style}">
     <div style="display:flex;align-items:center;gap:9px;height:42px;padding:0 18px;font:600 14px 'Inter Variable';border-bottom:1px solid #eceef3;${labelStyle}">
-      ${logoDot ? logo(20, "border-radius:5px") : `<span style="width:10px;height:10px;border-radius:50%;background:#c9ccd6;display:inline-block"></span>`}${label}
+      ${logoDot ? logo(20) : `<span style="width:10px;height:10px;border-radius:50%;background:#c9ccd6;display:inline-block"></span>`}${label}
     </div><div style="padding:10px;background:#fff">${inner}</div></div>`;
 }
 
