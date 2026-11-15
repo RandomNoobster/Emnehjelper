@@ -63,7 +63,7 @@ Check `cell.classList.contains("emnehjelper-info")` to avoid re-processing rows.
 ## File Organization
 - `emnehjelper/` - Extension source code
 - `media/` - Promotional graphics (the poster, with its .pdn source for Paint.NET)
-- `media/raw/` - Unedited 2x screenshots for Chrome Web Store artwork, made by `tools/store-screenshots/`
+- `media/raw/` - Unedited screenshots for the Chrome Web Store artwork and the posters, made by `tools/store-screenshots/` (2x by default; `--scale 4` for sharper prints)
 - `media/store/` - Finished Chrome Web Store screenshots (1280x800) and small promo tile (440x280), made by `tools/store-art/` from `media/raw/`; the README shows them too
 - `media/posters/` - Print-ready campus posters as PDF (A3 for walls, A4 for tables), made by `tools/poster/` from `media/raw/`
 - `emnehjelper/media/` - Extension assets (icons, logos)
@@ -90,7 +90,7 @@ Check `cell.classList.contains("emnehjelper-info")` to avoid re-processing rows.
 - The script depends on NTNU's study plan markup and on the extension's class names; the README lists them
 - Then run `npm run build` in `tools/store-art/` to make the finished images in `media/store/`. The headlines are in `SCENES` in `tools/store-art/build.mjs` and are written in Norwegian, in the same plain style as the README. The crops of each capture are in `R` in `tools/store-art/lib.mjs`; check them if the captures change
 - The store needs exact sizes and 24-bit PNG without alpha; `build.mjs` already writes that format
-- Run `npm run build` in `tools/poster/` to remake the posters in `media/posters/` from the same captures. Printers can't print to the edge, so the outer 5 mm of each poster is pure white and the background fades in from there; keep all content more than 13 mm (A4) and 17 mm (A3) from the edge. Fonts are converted to TTF before rendering, because Chromium embeds woff2 fonts in PDFs as Type 3 fonts
+- Run `npm run build` in `tools/poster/` to remake the posters in `media/posters/` from the same captures. Printers can't print to the edge, so the outer 5 mm of each poster is pure white and the background fades in from there; keep all content more than 13 mm (A4) and 17 mm (A3) from the edge. Fonts are converted to TTF before rendering, because Chromium embeds woff2 fonts in PDFs as Type 3 fonts. For a sharp A3, capture `study` and `course-light` with `npm run shots -- --scale 4 study course-light` first; both art tools size captures by CSS pixels, so any scale works
 
 ### Release Process
 - Version bumping: Increment `manifest.json` version after multiple commits with changes

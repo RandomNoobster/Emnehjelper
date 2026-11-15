@@ -25,4 +25,19 @@ npm run build
 
 Verktøyet bruker `study-plan.png` og `panel-light.png` fra `media/raw/`. De lages av `tools/store-screenshots/` med `npm run shots`. Hvis skjermbildene ligger et annet sted, kan du bruke `node build.mjs --raw=<mappe>`, og `--out=<mappe>` for å lagre plakatene et annet sted.
 
+## Skarpere skjermbilder
+
+Skjermbildene i `media/raw/` er tatt med dobbel oppløsning (2x). Det er nok for A4, men studieplanen på A3 blir bare skrevet ut med 176 dpi, så den kan se litt uskarp ut på nært hold. For å få skarpere plakater kan du ta de to skjermbildene på nytt med fire ganger oppløsning, og så lage plakatene på nytt:
+
+```bash
+cd ../store-screenshots
+npm run shots -- --scale 4 study course-light
+cd ../poster
+npm run build
+```
+
+Da blir studieplanen skrevet ut med 352 dpi på A3. Det trengs ingen andre endringer, og bildene til Chrome Web Store ser ut som før.
+
+## Tekst og plassering
+
 Tekstene står i `T` øverst i `build.mjs`. Hvis du flytter noe, må alt innhold være mer enn 13 mm (A4) og 17 mm (A3) fra kanten, ellers havner det under den hvite kanten.
