@@ -22,7 +22,7 @@ const THIRD_YEAR_INDEX = 2; // Index of the 3rd year among the study plan's div.
 const COURSE_URL = 'https://www.ntnu.no/studier/emner/TDT4100';
 
 const VIEWPORT = { width: 1280, height: 800 };
-const DEVICE_SCALE_FACTOR = 2;
+const DEFAULT_SCALE = 2; // Device scale factor; --scale 4 gives sharper captures for printed posters
 const ABOUT_POPUP_WIDTH = 320;
 const HEADING_GAP_PX = 20; // Space between NTNU's sticky header and the semester heading
 const DATA_TIMEOUT_MS = 180_000;
@@ -41,12 +41,14 @@ const STEPS = {
 // ---------- Arguments ----------
 
 function parseArgs(argv) {
-  const options = { ext: path.join(REPO_DIR, 'emnehjelper'), out: path.join(REPO_DIR, 'media', 'raw'), steps: [] };
+  const options = { ext: path.join(REPO_DIR, 'emnehjelper'), out: path.join(REPO_DIR, 'media', 'raw'), scale: DEFAULT_SCALE, steps: [] };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--ext') options.ext = path.resolve(argv[++i]);
     else if (argv[i] === '--out') options.out = path.resolve(argv[++i]);
+    else if (argv[i] === '--scale') options.scale = Number(argv[++i]);
     else options.steps.push(argv[i]);
   }
+  if (!(options.scale >= 1 && options.scale <= 8)) throw new Error('--scale must be a number from 1 to 8, for example --scale 4');
   if (!options.steps.length) options.steps = Object.keys(STEPS);
   const unknown = options.steps.filter((step) => !STEPS[step]);
   if (unknown.length) {
@@ -77,7 +79,7 @@ async function launchWithExtension({ profileName, colorScheme = 'light', extraAr
     channel: 'chromium', // Full Chromium in new headless mode; the default headless shell cannot load extensions
     headless: true,
     viewport: VIEWPORT,
-    deviceScaleFactor: DEVICE_SCALE_FACTOR,
+    deviceScaleFactor: OPTIONS.scale,
     colorScheme,
     args: [`--disable-extensions-except=${OPTIONS.ext}`, `--load-extension=${OPTIONS.ext}`, ...extraArgs],
   });
@@ -210,7 +212,7 @@ async function captureStudyPlanWithout() {
   if (!fs.existsSync(STUDY_PLAN_PICK_FILE)) throw new Error('Run the "study" step first: it picks the table to show');
   const { index, offset } = JSON.parse(fs.readFileSync(STUDY_PLAN_PICK_FILE, 'utf8'));
   const browser = await chromium.launch({ channel: 'chromium', headless: true });
-  const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: DEVICE_SCALE_FACTOR, colorScheme: 'light' });
+  const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: OPTIONS.scale, colorScheme: 'light' });
   const page = await context.newPage();
   await openThirdYear(page);
   await scrollToThirdYearTable(page, index, offset);
@@ -285,7 +287,7 @@ async function capturePanel(page, file) {
     context.clip();
     context.drawImage(image, 0, 0);
     return canvas.toDataURL('image/png').split(',')[1];
-  }, [screenshot.toString('base64'), radius * DEVICE_SCALE_FACTOR]);
+  }, [screenshot.toString('base64'), radius * OPTIONS.scale]);
   await blank.close();
   fs.writeFileSync(outputPath(file), Buffer.from(masked, 'base64'));
   log(`saved ${file}`);

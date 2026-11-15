@@ -12,18 +12,21 @@ npm run setup
 npm run shots
 ```
 
-`npm run setup` downloads Playwright's Chromium (once per Playwright version). `npm run shots` runs every step; pass step names to redo only some, and `--out` / `--ext` to change the output or extension folder:
+`npm run setup` downloads Playwright's Chromium (once per Playwright version). `npm run shots` runs every step; pass step names to redo only some, `--out` / `--ext` to change the output or extension folder, and `--scale` to change the device scale factor (default 2):
 
 ```bash
 npm run shots -- course-light course-dark
 npm run shots -- --out ../../media/raw-test about
+npm run shots -- --scale 4 study course-light
 ```
+
+The last line recaptures the two screenshots the posters use at 4x, so they stay sharp when printed on A3. `tools/store-art/` and `tools/poster/` size the captures by their CSS pixels, so captures at different scales can be mixed. A 4x PNG is about four times as big as a 2x one.
 
 A full run takes about two minutes. Check the log for `WARNING:` lines: they mean a capture shows missing data, a warning banner or a cut-off table.
 
 ## Steps and outputs
 
-All page captures are 1280x800 at device scale factor 2, so 2560x1600 pixels.
+All page captures are 1280x800 CSS pixels. At the default device scale factor of 2 that is 2560x1600 pixels, and 5120x3200 with `--scale 4`.
 
 | Step | Output | What it shows |
 | --- | --- | --- |
