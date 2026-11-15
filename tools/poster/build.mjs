@@ -38,7 +38,7 @@ const T = {
   sub: "Emnehjelper viser vanskelighetsgrad, arbeidsmengde og snittkarakter rett i studieplanen din.",
   intro: "Emnehjelper er en nettleser-utvidelse som gjør det enklere å velge emner ved NTNU. Den viser vanskelighetsgrad, arbeidsmengde og snittkarakter rett i studieplanen din og på alle emnesider.",
   planTitle: "Studieplaner",
-  plan: "Hvert emne i studieplanen får merker for vanskelighetsgrad, arbeidsmengde og snittkarakter. Da ser du hvilke semestre som blir tunge, og hvilke valgbare emner som gir de beste karakterene og minst arbeid.",
+  plan: "Hvert emne i studieplanen får merker for vanskelighetsgrad, arbeidsmengde og snittkarakter. Da ser du hvilke semestre som blir tunge, og hvilke valgbare emner som gir de <strong>beste karakterene</strong> og <strong>minst arbeid</strong>.",
   courseTitle: "Emnesider",
   course: "På emnesiden ser du beståttprosent, arbeidsmengde og snittkarakter. Det er også lenker til emnr, karakterweb og karakterer.net, slik at du slipper å søke det opp.",
   data: "Statistikken er et vektet gjennomsnitt fra emnr og karakterweb.",
@@ -59,7 +59,7 @@ const T = {
 // Chromium embeds woff2 fonts in PDFs as Type 3 fonts, which some print shops reject.
 // TTF files are embedded as normal TrueType fonts, so the woff2 files are converted first.
 const FONT_LIST = [
-  ["Plus Jakarta Sans", "plus-jakarta-sans", ["500-normal", "500-italic", "800-normal"]],
+  ["Plus Jakarta Sans", "plus-jakarta-sans", ["500-normal", "500-italic", "600-normal", "800-normal"]],
   ["Inter", "inter", ["400-normal"]],
 ];
 async function fontFaces(dir) {
@@ -183,6 +183,7 @@ body { font-family:'Plus Jakarta Sans',sans-serif; color:${INK}; }
 .word { font-weight:800; letter-spacing:-.035em; line-height:1; }
 .t { font-weight:800; line-height:1.02; letter-spacing:-.035em; text-wrap:balance; }
 .s { color:${MUTED}; font-weight:500; line-height:1.45; text-wrap:pretty; }
+.s strong { color:${INK}; font-weight:600; }
 .card { background:#fff; }
 .num { display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:#1a0fb3; color:#fff; font-weight:800; flex-shrink:0; }
 `;
